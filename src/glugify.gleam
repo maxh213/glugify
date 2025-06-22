@@ -24,9 +24,16 @@ pub fn slugify_with(
 ) -> Result(String, SlugifyError) {
   use validated <- result.try(validators.validate_input(text))
   use normalized <- result.try(processors.normalize_whitespace(validated))
+  use with_custom_replacements <- result.try(
+    processors.apply_custom_replacements(normalized, config.custom_replacements),
+  )
   use transliterated <- result.try(case config.transliterate {
-    True -> unicode.transliterate_text(normalized)
-    False -> unicode.validate_ascii_or_unicode(normalized, config.allow_unicode)
+    True -> unicode.transliterate_text(with_custom_replacements)
+    False ->
+      unicode.validate_ascii_or_unicode(
+        with_custom_replacements,
+        config.allow_unicode,
+      )
   })
   use lowercased <- result.try(
     Ok(case config.lowercase {
@@ -37,7 +44,15 @@ pub fn slugify_with(
   use separated <- result.try(processors.apply_separators(lowercased, config))
   use cleaned <- result.try(processors.remove_invalid_chars(separated, config))
   use collapsed <- result.try(processors.collapse_separators(cleaned, config))
-  use trimmed <- result.try(processors.trim_separators(collapsed, config))
+  use without_stop_words <- result.try(processors.filter_stop_words(
+    collapsed,
+    config.stop_words,
+    config.separator,
+  ))
+  use trimmed <- result.try(processors.trim_separators(
+    without_stop_words,
+    config,
+  ))
   use truncated <- result.try(case config.max_length {
     option.Some(len) ->
       processors.truncate_slug(trimmed, len, config.word_boundary)

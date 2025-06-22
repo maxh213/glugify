@@ -372,3 +372,235 @@ pub fn slugify_preserve_case_with_unicode_test() {
   |> should.be_ok
   |> should.equal("CafeE_and_RestaurantN")
 }
+
+// STOP WORDS TESTS
+
+pub fn slugify_with_stop_words_basic_test() {
+  let config =
+    config.default()
+    |> config.with_stop_words(["the", "and", "or"])
+
+  glugify.slugify_with("The quick and brown fox", config)
+  |> should.be_ok
+  |> should.equal("quick-brown-fox")
+}
+
+pub fn slugify_with_stop_words_empty_list_test() {
+  let config = config.default() |> config.with_stop_words([])
+
+  glugify.slugify_with("The quick and brown fox", config)
+  |> should.be_ok
+  |> should.equal("the-quick-and-brown-fox")
+}
+
+pub fn slugify_with_stop_words_case_sensitive_test() {
+  let config =
+    config.default()
+    |> config.with_stop_words(["The", "and"])
+    |> config.with_lowercase(False)
+
+  glugify.slugify_with("The quick and brown fox", config)
+  |> should.be_ok
+  |> should.equal("quick-brown-fox")
+}
+
+pub fn slugify_with_stop_words_all_filtered_test() {
+  let config =
+    config.default()
+    |> config.with_stop_words(["the", "quick", "and", "brown", "fox"])
+
+  glugify.slugify_with("The quick and brown fox", config)
+  |> should.be_ok
+  |> should.equal("")
+}
+
+pub fn slugify_with_stop_words_custom_separator_test() {
+  let config =
+    config.default()
+    |> config.with_stop_words(["the", "and"])
+    |> config.with_separator("_")
+
+  glugify.slugify_with("The quick and brown fox", config)
+  |> should.be_ok
+  |> should.equal("quick_brown_fox")
+}
+
+pub fn slugify_with_stop_words_partial_match_test() {
+  let config =
+    config.default()
+    |> config.with_stop_words(["and"])
+
+  glugify.slugify_with("brand and product", config)
+  |> should.be_ok
+  |> should.equal("brand-product")
+}
+
+pub fn slugify_with_stop_words_consecutive_test() {
+  let config =
+    config.default()
+    |> config.with_stop_words(["the", "and", "or", "of"])
+
+  glugify.slugify_with("The art of war and peace", config)
+  |> should.be_ok
+  |> should.equal("art-war-peace")
+}
+
+pub fn slugify_with_stop_words_at_edges_test() {
+  let config =
+    config.default()
+    |> config.with_stop_words(["the", "end"])
+
+  glugify.slugify_with("the beginning and the end", config)
+  |> should.be_ok
+  |> should.equal("beginning-and")
+}
+
+// CUSTOM REPLACEMENTS TESTS
+
+pub fn slugify_with_custom_replacements_basic_test() {
+  let config =
+    config.default()
+    |> config.with_custom_replacements([#("&", " and "), #("+", " plus ")])
+
+  glugify.slugify_with("C++ & Java", config)
+  |> should.be_ok
+  |> should.equal("c-plus-plus-and-java")
+}
+
+pub fn slugify_with_custom_replacements_empty_list_test() {
+  let config = config.default() |> config.with_custom_replacements([])
+
+  glugify.slugify_with("C++ & Java", config)
+  |> should.be_ok
+  |> should.equal("c-and-java")
+}
+
+pub fn slugify_with_custom_replacements_multiple_test() {
+  let config =
+    config.default()
+    |> config.with_custom_replacements([
+      #("@", " at "),
+      #("#", " hash "),
+      #("%", " percent "),
+    ])
+
+  glugify.slugify_with("email@domain.com #tag 50%", config)
+  |> should.be_ok
+  |> should.equal("email-at-domain-com-hash-tag-50-percent")
+}
+
+pub fn slugify_with_custom_replacements_word_replacement_test() {
+  let config =
+    config.default()
+    |> config.with_custom_replacements([
+      #("JavaScript", "JS"),
+      #("TypeScript", "TS"),
+    ])
+
+  glugify.slugify_with("JavaScript and TypeScript Guide", config)
+  |> should.be_ok
+  |> should.equal("js-and-ts-guide")
+}
+
+pub fn slugify_with_custom_replacements_preserve_case_test() {
+  let config =
+    config.default()
+    |> config.with_custom_replacements([#("JS", "JavaScript")])
+    |> config.with_lowercase(False)
+
+  glugify.slugify_with("My JS Project", config)
+  |> should.be_ok
+  |> should.equal("My-JavaScript-Project")
+}
+
+pub fn slugify_with_custom_replacements_overlapping_test() {
+  let config =
+    config.default()
+    |> config.with_custom_replacements([
+      #("++", " plus plus "),
+      #("+", " plus "),
+    ])
+
+  glugify.slugify_with("C++ and C+", config)
+  |> should.be_ok
+  |> should.equal("c-plus-plus-and-c-plus")
+}
+
+pub fn slugify_with_custom_replacements_unicode_test() {
+  let config =
+    config.default()
+    |> config.with_custom_replacements([#("→", " arrow "), #("∞", " infinity ")])
+
+  glugify.slugify_with("A → B ∞", config)
+  |> should.be_ok
+  |> should.equal("a-arrow-b-infinity")
+}
+
+// COMBINED FEATURES TESTS
+
+pub fn slugify_with_stop_words_and_custom_replacements_test() {
+  let config =
+    config.default()
+    |> config.with_stop_words(["the", "and"])
+    |> config.with_custom_replacements([#("&", " and ")])
+
+  glugify.slugify_with("The cat & the dog", config)
+  |> should.be_ok
+  |> should.equal("cat-dog")
+}
+
+pub fn slugify_with_all_advanced_features_test() {
+  let config =
+    config.default()
+    |> config.with_stop_words(["the", "of"])
+    |> config.with_custom_replacements([#("C++", "C plus plus")])
+    |> config.with_separator("_")
+    |> config.with_max_length(30)
+    |> config.with_word_boundary(True)
+
+  glugify.slugify_with("The history of C++ programming", config)
+  |> should.be_ok
+  |> should.equal("history_c_plus_plus_programmin")
+}
+
+// EDGE CASES FOR NEW FEATURES
+
+pub fn slugify_with_stop_words_no_match_test() {
+  let config =
+    config.default()
+    |> config.with_stop_words(["xyz", "abc"])
+
+  glugify.slugify_with("hello world test", config)
+  |> should.be_ok
+  |> should.equal("hello-world-test")
+}
+
+pub fn slugify_with_custom_replacements_no_match_test() {
+  let config =
+    config.default()
+    |> config.with_custom_replacements([#("xyz", "abc")])
+
+  glugify.slugify_with("hello world test", config)
+  |> should.be_ok
+  |> should.equal("hello-world-test")
+}
+
+pub fn slugify_with_stop_words_single_word_test() {
+  let config =
+    config.default()
+    |> config.with_stop_words(["hello"])
+
+  glugify.slugify_with("hello", config)
+  |> should.be_ok
+  |> should.equal("")
+}
+
+pub fn slugify_with_custom_replacements_empty_string_test() {
+  let config =
+    config.default()
+    |> config.with_custom_replacements([#("remove", "")])
+
+  glugify.slugify_with("please remove this", config)
+  |> should.be_ok
+  |> should.equal("please-this")
+}

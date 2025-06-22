@@ -374,3 +374,54 @@ fn truncate_at_word_boundary(
     Error(_) -> Ok(truncated)
   }
 }
+
+pub fn apply_custom_replacements(
+  text: String,
+  replacements: List(#(String, String)),
+) -> Result(String, SlugifyError) {
+  apply_replacements_helper(text, replacements) |> Ok
+}
+
+fn apply_replacements_helper(
+  text: String,
+  replacements: List(#(String, String)),
+) -> String {
+  case replacements {
+    [] -> text
+    [#(find, replace), ..rest] -> {
+      let updated = string.replace(text, find, replace)
+      apply_replacements_helper(updated, rest)
+    }
+  }
+}
+
+pub fn filter_stop_words(
+  text: String,
+  stop_words: List(String),
+  separator: String,
+) -> Result(String, SlugifyError) {
+  case list.is_empty(stop_words) {
+    True -> Ok(text)
+    False -> {
+      let words = string.split(text, separator)
+      let filtered_words = filter_stop_words_helper(words, stop_words, [])
+      string.join(filtered_words, separator) |> Ok
+    }
+  }
+}
+
+fn filter_stop_words_helper(
+  words: List(String),
+  stop_words: List(String),
+  acc: List(String),
+) -> List(String) {
+  case words {
+    [] -> list.reverse(acc)
+    [word, ..rest] -> {
+      case list.contains(stop_words, word) {
+        True -> filter_stop_words_helper(rest, stop_words, acc)
+        False -> filter_stop_words_helper(rest, stop_words, [word, ..acc])
+      }
+    }
+  }
+}
