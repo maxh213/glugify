@@ -42,7 +42,7 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 - [x] Review the entire codebase for code which doesn't follow the brief or code which isn't production safe / ready 
 - [x] Add the results of the performance benchmarks to the readme.md
 - [x] Make sure all functions are properly documented for hex so that it can automatically generate documentation
-- [ ] move this to the main branch, push it, and tag it with a new version number and update the changelog.md
+- [x] move this to the main branch, push it, and tag it with a new version number and update the changelog.md
 
 ## Development Guidelines
 
