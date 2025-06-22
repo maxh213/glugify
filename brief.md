@@ -1,0 +1,238 @@
+# Implementation Plan for glugify Library
+
+## Architecture for a robust, Gleam-idiomatic slugification library
+
+Based on extensive research of mature slugification libraries across JavaScript, Python, Ruby, and Rust ecosystems, combined with Gleam-specific language features and functional programming patterns, this implementation plan provides a clear roadmap for creating a comprehensive yet elegant slugification library for Gleam.
+
+### Core design philosophy
+
+The glugify library should embrace Gleam's strengths: static typing with inference, pure functional programming, exhaustive pattern matching, and explicit error handling through Result types. The API will follow a progressive enhancement approach - simple by default with increasing configurability for advanced use cases.
+
+## API Architecture
+
+### Three-tier API design
+
+```gleam
+// Tier 1: Simple, zero-configuration API
+pub fn slugify(text: String) -> String
+
+// Tier 2: Error-aware API
+pub fn try_slugify(text: String) -> Result(String, SlugifyError)
+
+// Tier 3: Fully configurable API  
+pub fn slugify_with(text: String, config: Config) -> Result(String, SlugifyError)
+```
+
+### Configuration through immutable records
+
+```gleam
+pub type Config {
+  Config(
+    // Core options
+    separator: String,              // Default: "-"
+    lowercase: Bool,                // Default: True
+    max_length: Option(Int),        // Default: None
+    word_boundary: Bool,            // Default: False when truncating
+    
+    // Unicode handling
+    transliterate: Bool,            // Default: True
+    allow_unicode: Bool,            // Default: False
+    custom_replacements: List(#(String, String)), // Default: []
+    
+    // Advanced options
+    preserve_leading_underscore: Bool,  // Default: False
+    preserve_trailing_dash: Bool,       // Default: False
+    stop_words: List(String),          // Default: []
+    trim: Bool                         // Default: True
+  )
+}
+```
+
+### Functional composition pattern
+
+To enable flexible transformation pipelines while maintaining type safety:
+
+```gleam
+pub type Transformation = 
+  fn(String) -> Result(String, SlugifyError)
+
+pub fn compose(transformations: List(Transformation)) -> Transformation
+
+// Pre-built transformations
+pub fn normalize_unicode() -> Transformation
+pub fn transliterate_to_ascii() -> Transformation  
+pub fn apply_separator(separator: String) -> Transformation
+pub fn truncate_at_word_boundary(max_length: Int) -> Transformation
+```
+
+## Implementation Strategy
+
+### Unicode handling approach
+
+Since Gleam lacks built-in Unicode normalization and transliteration, the library will need to implement:
+
+1. **Character mapping tables**: Static lookup tables for common Unicode-to-ASCII transliterations
+2. **Language-specific rules**: Configurable transliteration rules (e.g., German ö→oe vs Swedish ö→o)
+3. **Grapheme-aware processing**: Leverage Gleam's `string.to_graphemes()` for proper Unicode handling
+
+```gleam
+// Internal character mapping structure
+type CharMap = 
+  dict.Dict(String, String)
+
+// Core transliteration maps
+const latin_extended_map = dict.from_list([
+  #("à", "a"), #("á", "a"), #("ä", "ae"), #("ã", "a"),
+  #("è", "e"), #("é", "e"), #("ë", "e"), #("ê", "e"),
+  // ... comprehensive mappings
+])
+
+const symbol_map = dict.from_list([
+  #("&", " and "), #("@", " at "), #("%", " percent "),
+  #("$", " dollar "), #("€", " euro "), #("£", " pound ")
+])
+```
+
+### Edge case handling strategy
+
+Based on research findings, the library must handle these critical edge cases:
+
+1. **Empty input**: Return empty string for simple API, Error(EmptyInput) for Result-based APIs
+2. **Multiple separators**: Collapse consecutive separators into single separator
+3. **Leading/trailing separators**: Trim by default with configuration options
+4. **Unicode normalization**: Apply NFC normalization before processing
+5. **Very long strings**: Implement word-boundary-aware truncation
+6. **Mixed scripts**: Process each script with appropriate transliterator
+
+### Processing pipeline
+
+The core slugification process will follow this pipeline:
+
+```gleam
+pub fn slugify_with(text: String, config: Config) -> Result(String, SlugifyError) {
+  use validated <- result.try(validate_input(text))
+  use normalized <- result.try(normalize_whitespace(validated))
+  use transliterated <- result.try(
+    case config.transliterate {
+      True -> transliterate_text(normalized, config)
+      False -> Ok(normalized)
+    }
+  )
+  use separated <- result.try(apply_separators(transliterated, config))
+  use cleaned <- result.try(remove_invalid_chars(separated, config))
+  use collapsed <- result.try(collapse_separators(cleaned, config))
+  use trimmed <- result.try(trim_separators(collapsed, config))
+  use truncated <- result.try(
+    case config.max_length {
+      Some(len) -> truncate_slug(trimmed, len, config.word_boundary)
+      None -> Ok(trimmed)
+    }
+  )
+  
+  Ok(truncated)
+}
+```
+
+## Module Organization
+
+```
+src/
+├── glugify.gleam          # Main public API
+├── glugify/
+│   ├── config.gleam            # Configuration types and builders
+│   ├── unicode.gleam           # Unicode handling and transliteration
+│   ├── transformations.gleam   # Composable transformation functions
+│   ├── errors.gleam            # Error types and handling
+│   └── internal/
+│       ├── char_maps.gleam     # Character mapping tables
+│       ├── validators.gleam    # Input validation functions
+│       └── processors.gleam    # Core processing functions
+```
+
+## Error handling strategy
+
+Following Gleam's explicit error handling philosophy:
+
+```gleam
+pub type SlugifyError {
+  EmptyInput
+  InvalidInput(reason: String)
+  TooLong(current: Int, max: Int)
+  TransliterationFailed(char: String)
+  ConfigurationError(message: String)
+}
+
+// Helper for converting Result-based operations to simple strings
+pub fn slugify(text: String) -> String {
+  case try_slugify(text) {
+    Ok(slug) -> slug
+    Error(_) -> ""
+  }
+}
+```
+
+## Performance considerations
+
+1. **Single-pass processing**: Minimize string iterations by combining operations
+2. **String builder pattern**: Use `string_tree` for efficient concatenation
+3. **Lazy evaluation**: Only compute what's needed based on configuration
+4. **Character lookup optimization**: Use dictionaries for O(1) character mapping lookups
+
+## Testing strategy
+
+The library should include comprehensive tests covering:
+
+1. **Unicode edge cases**: All scripts, emojis, combining characters
+2. **Configuration combinations**: Test all option permutations
+3. **Performance benchmarks**: Ensure reasonable performance for common cases
+4. **Cross-platform compatibility**: Verify behavior on both Erlang and JavaScript targets
+5. **Property-based testing**: Use generators to find edge cases
+
+## Example usage patterns
+
+```gleam
+import glugify as slug
+import glugify/config
+
+// Simple usage
+let title_slug = slug.slugify("My Blog Post Title!")
+// -> "my-blog-post-title"
+
+// With configuration
+let custom_config = config.default()
+  |> config.with_separator("_")
+  |> config.with_max_length(20)
+  |> config.with_word_boundary(True)
+
+let result = slug.slugify_with("A Very Long Title That Needs Truncation", custom_config)
+// -> Ok("a_very_long_title")
+
+// Functional composition
+let doc_slugifier = slug.create_slugifier(
+  config.default()
+  |> config.with_preserve_case(True)
+  |> config.with_custom_replacements([#("+", " plus ")])
+)
+
+let doc_slug = doc_slugifier("C++ Programming Guide")
+// -> Ok("C-plus-plus-Programming-Guide")
+```
+
+## Implementation priorities
+
+1. **Phase 1**: Core functionality with Latin character support
+   - Basic slugification with default configuration
+   - ASCII transliteration for common European languages
+   - Essential edge case handling
+
+2. **Phase 2**: Extended Unicode support
+   - Comprehensive character mapping tables
+   - Language-specific transliteration rules
+   - Emoji handling
+
+3. **Phase 3**: Advanced features
+   - Stop word filtering
+   - Custom transformation pipelines
+   - Performance optimizations
+
+This implementation plan provides a clear path to creating a robust, type-safe, and ergonomic slugification library that leverages Gleam's strengths while addressing all common slugification challenges found in production systems.
