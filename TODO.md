@@ -75,8 +75,7 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 - [x] Consider adding input validation for malicious/invalid characters if `InvalidInput` should be implemented, or remove the error type and update documentation - REMOVED: Library processes all input rather than rejecting it
 
 ## v1.0.11
-- [ ] Run through all the codebase and inspect the tests to check for something that looks like it was added so the AI developer could reward hack their way around a bug. Make sure all the expectations in the tests are inline with the brief. Think deeply about the brief and what this project is trying to achieve.
-
+- [x] Run through all the codebase and inspect the tests to check for something that looks like it was added so the AI developer could reward hack their way around a bug. Make sure all the expectations in the tests are inline with the brief. Think deeply about the brief and what this project is trying to achieve. 
 
 ## Development Guidelines
 

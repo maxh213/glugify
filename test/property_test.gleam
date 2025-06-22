@@ -26,12 +26,13 @@ pub fn slugify_non_empty_input_produces_result_test() {
   qcheck.given(
     qcheck.non_empty_string_from(qcheck.alphanumeric_ascii_codepoint()),
     fn(input) {
-      // For alphanumeric ASCII input, we should always get a result, never EmptyInput
+      // For alphanumeric ASCII input, we should always get a valid result
+      // This input type should never fail since it contains only safe characters
       case glugify.try_slugify(input) {
         Ok(_) -> Nil
         Error(errors.EmptyInput) -> should.fail()
-        Error(_) -> Nil
-        // Other errors are acceptable
+        Error(_) -> should.fail()
+        // Alphanumeric ASCII should never produce other errors
       }
     },
   )
@@ -49,8 +50,12 @@ pub fn slugify_length_property_test() {
           False -> panic as "Slug length exceeded maximum"
         }
       }
-      Error(_) -> Nil
-      // Errors are acceptable
+      Error(errors.EmptyInput) -> Nil
+      // EmptyInput is expected for empty strings
+      Error(errors.TransliterationFailed(_)) -> Nil
+      // TransliterationFailed is expected for some Unicode inputs
+      Error(errors.ConfigurationError(_)) -> should.fail()
+      // ConfigurationError should not occur with valid config
     }
   })
 }
@@ -71,8 +76,10 @@ pub fn slugify_separator_consistency_test() {
             False -> Nil
           }
         }
-        Error(_) -> Nil
-        // Errors are acceptable
+        Error(errors.EmptyInput) -> Nil
+        Error(errors.TransliterationFailed(_)) -> Nil
+        Error(errors.ConfigurationError(_)) -> Nil
+        // ConfigurationError may occur with some separator characters
       }
     },
   )
@@ -158,8 +165,10 @@ pub fn slugify_unicode_handling_test() {
         // This is expected when transliteration is disabled and non-ASCII chars are found
         Nil
       }
-      Error(_) -> Nil
-      // Other errors are acceptable
+      Error(errors.EmptyInput) -> Nil
+      // EmptyInput is expected for empty/whitespace-only strings
+      Error(errors.ConfigurationError(_)) -> should.fail()
+      // ConfigurationError should not occur with this valid config
     }
   })
 }
@@ -181,7 +190,12 @@ pub fn slugify_stop_words_removal_test() {
           })
           |> should.be_true
         }
-        Error(_) -> Nil
+        Error(errors.EmptyInput) -> Nil
+        // EmptyInput is expected for empty/whitespace-only strings
+        Error(errors.TransliterationFailed(_)) -> should.fail()
+        // Should not occur with alphabetic ASCII input
+        Error(errors.ConfigurationError(_)) -> should.fail()
+        // Should not occur with valid config
       }
     },
   )
@@ -200,7 +214,10 @@ pub fn slugify_custom_replacements_test() {
           False -> Nil
         }
       }
-      Error(_) -> Nil
+      Error(errors.EmptyInput) -> Nil
+      Error(errors.TransliterationFailed(_)) -> Nil
+      Error(errors.ConfigurationError(_)) -> should.fail()
+      // Should not occur with valid config
     }
   })
 }
@@ -226,7 +243,9 @@ pub fn slugify_word_boundary_truncation_test() {
           False -> Nil
         }
       }
-      Error(_) -> Nil
+      Error(errors.EmptyInput) -> Nil
+      Error(errors.TransliterationFailed(_)) -> Nil
+      Error(errors.ConfigurationError(_)) -> should.fail()
     }
   })
 }
@@ -322,7 +341,10 @@ pub fn slugify_configuration_invariants_test() {
             }
           }
         }
-        Error(_) -> Nil
+        Error(errors.EmptyInput) -> Nil
+        Error(errors.TransliterationFailed(_)) -> Nil
+        Error(errors.ConfigurationError(_)) -> should.fail()
+        // Should not occur with these valid separators
       }
     },
   )

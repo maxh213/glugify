@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.11] - 2025-06-22
+
+### Fixed
+- Removed overly permissive error handling patterns in property-based tests that could mask real implementation issues
+- Enhanced property test error handling to be more specific and aligned with expected behavior rather than accepting "any error"
+- Fixed `slugify_non_empty_input_produces_result_test` to properly fail when alphanumeric ASCII input produces unexpected errors
+- Improved error expectations in property tests to distinguish between legitimate errors (EmptyInput, TransliterationFailed) and unexpected errors (ConfigurationError with valid configs)
+
+### Code Quality
+- Property-based tests now properly validate expected behavior instead of masking potential issues with catch-all error handling
+- Eliminated "reward hacking" patterns where tests would accept any error as valid to avoid test failures
+- Tests now align more closely with the brief's core requirement of robust, predictable slugification behavior
+
 ## [1.0.10] - 2025-06-22
 
 ### Removed
