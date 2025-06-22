@@ -149,6 +149,13 @@ fn is_unicode_char(char: String) -> Bool {
   }
 }
 
+fn is_char_in_separator(char: String, separator: String) -> Bool {
+  case separator {
+    "" -> False
+    _ -> string.contains(separator, char)
+  }
+}
+
 pub fn remove_invalid_chars(
   text: String,
   config: Config,
@@ -170,7 +177,8 @@ fn filter_valid_chars_with_unicode(
     [] -> list.reverse(acc)
     [char, ..rest] -> {
       case
-        is_alphanumeric_or_unicode(char, allow_unicode) || char == separator
+        is_alphanumeric_or_unicode(char, allow_unicode)
+        || is_char_in_separator(char, separator)
       {
         True ->
           filter_valid_chars_with_unicode(rest, separator, allow_unicode, [

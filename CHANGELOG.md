@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2025-06-22
+
+### Fixed
+- Fixed multi-character separator bug where separators like "--" were incorrectly filtered out by the `remove_invalid_chars` function
+- Multi-character separators now work correctly (e.g., "--", "___", "-_-")
+- Added comprehensive tests for various multi-character separator configurations
+
 ## [1.0.3] - 2025-06-22
 
 ### Fixed
@@ -57,7 +64,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core slugification logic foundation
 - Initial test framework setup
 
-[Unreleased]: https://github.com/anima-international/glugify/compare/v1.0.3...HEAD
+[Unreleased]: https://github.com/anima-international/glugify/compare/v1.0.4...HEAD
+[1.0.4]: https://github.com/anima-international/glugify/releases/tag/v1.0.4
 [1.0.3]: https://github.com/anima-international/glugify/releases/tag/v1.0.3
 [1.0.2]: https://github.com/anima-international/glugify/releases/tag/v1.0.2
 [1.0.1]: https://github.com/anima-international/glugify/releases/tag/v1.0.1
