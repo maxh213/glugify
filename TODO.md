@@ -38,6 +38,11 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 - [x] Test cross-platform compatibility (Erlang and JavaScript targets)
 - [x] Add property-based testing for comprehensive edge case coverage
 - [x] Add tests for each readme example and check they work as expected
+- [x] Review the entire codebase for adherence to Gleam best practices and idioms e.g. piping etc. 
+- [x] Review the entire codebase for code which doesn't follow the brief or code which isn't production safe / ready 
+- [x] Add the results of the performance benchmarks to the readme.md
+- [ ] Make sure all functions are properly documented for hex so that it can automatically generate documentation
+- [ ] move this to the main branch, push it, and tag it with a new version number and update the changelog.md
 
 ## Development Guidelines
 
