@@ -8,7 +8,7 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 - [x] create project setup according to the brief.md architecture
 
 ### Core API Implementation
-- [ ] Implement Tier 1 API: simple slugify(text: String) -> String function
+- [x] Implement Tier 1 API: simple slugify(text: String) -> String function
 - [ ] Create error types in src/glugify/errors.gleam module
 - [ ] Implement Tier 2 API: try_slugify(text: String) -> Result(String, SlugifyError)
 - [ ] Create Config type in src/glugify/config.gleam with all configuration options

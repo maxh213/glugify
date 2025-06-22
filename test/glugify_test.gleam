@@ -67,7 +67,7 @@ pub fn simple_slugify_punctuation_test() {
 
 pub fn simple_slugify_symbols_test() {
   glugify.slugify("Price: $25.99 @ store")
-  |> should.equal("price-25-99-dollar-at-store")
+  |> should.equal("price-dollar-25-99-at-store")
 }
 
 pub fn simple_slugify_unicode_symbols_test() {
@@ -311,12 +311,12 @@ pub fn try_slugify_no_transliteration_with_symbols_test() {
 
 pub fn slugify_all_latin_accents_test() {
   glugify.slugify("àáäãâåèéëêìíïîòóöõôùúüûçñ")
-  |> should.equal("aaaaaeeeeiiiiooooouuuucn")
+  |> should.equal("aaaaaaeeeeiiiiooooouuuucn")
 }
 
 pub fn slugify_all_latin_accents_uppercase_test() {
   glugify.slugify("ÀÁÄÃÂÅÈÉËÊÌÍÏÎÒÓÖÕÔÙÚÜÛÇÑ")
-  |> should.equal("aaaaaeeeeiiiiooooouuuucn")
+  |> should.equal("aaaaaaeeeeiiiiooooouuuucn")
 }
 
 pub fn slugify_german_specific_test() {

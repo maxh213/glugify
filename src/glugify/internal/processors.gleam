@@ -88,45 +88,6 @@ fn apply_separators_simple(
   }
 }
 
-fn apply_separators_graphemes(
-  graphemes: List(String),
-  separator: String,
-  acc: List(String),
-) -> List(String) {
-  case graphemes {
-    [] -> list.reverse(acc)
-    [char, ..rest] -> {
-      case is_alphanumeric(char) {
-        True -> apply_separators_graphemes(rest, separator, [char, ..acc])
-        False -> {
-          case acc {
-            [] -> apply_separators_graphemes(rest, separator, acc)
-            _ -> {
-              case separator {
-                "" -> apply_separators_graphemes(rest, separator, acc)
-                _ -> {
-                  case ends_with_separator(acc, separator) {
-                    True -> apply_separators_graphemes(rest, separator, acc)
-                    False -> {
-                      let separator_chars =
-                        string.to_graphemes(separator) |> list.reverse
-                      apply_separators_graphemes(
-                        rest,
-                        separator,
-                        list.append(separator_chars, acc),
-                      )
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
 fn ends_with_separator(acc: List(String), separator: String) -> Bool {
   case separator {
     "" -> False
@@ -180,16 +141,6 @@ fn is_unicode_char(char: String) -> Bool {
     [codepoint] -> {
       let code = string.utf_codepoint_to_int(codepoint)
       code > 127
-    }
-    _ -> False
-  }
-}
-
-fn is_ascii_printable(char: String) -> Bool {
-  case string.to_utf_codepoints(char) {
-    [codepoint] -> {
-      let code = string.utf_codepoint_to_int(codepoint)
-      code >= 32 && code <= 126
     }
     _ -> False
   }
