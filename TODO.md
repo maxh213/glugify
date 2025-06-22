@@ -56,6 +56,12 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 ## v1.0.5
 - [x] Run through all the codebase and inspect the tests to check for something that looks like it was added so the AI developer could reward hack their way around a bug. Make sure all the expectations in the tests are inline with the brief. Think deeply about the brief and what this project is trying to achieve.
 
+## v1.0.6
+- [x] Run through all the codebase and inspect the tests to check for something that looks like it was added so the AI developer could reward hack their way around a bug. Make sure all the expectations in the tests are inline with the brief. Think deeply about the brief and what this project is trying to achieve.
+
+## v1.0.7
+- [ ] - Add impodencey testing to the tests
+
 ## Development Guidelines
 
 Each task should be completed following these principles:
