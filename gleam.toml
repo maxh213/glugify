@@ -1,5 +1,5 @@
 name = "glugify"
-version = "1.0.6"
+version = "1.0.7"
 description = "A robust, type-safe slugification library for Gleam that converts text into URL-friendly slugs"
 licences = ["Apache-2.0"]
 repository = { type = "github", user = "anima-international", repo = "glugify" }

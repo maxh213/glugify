@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.7] - 2025-06-22
+
+### Added
+- Added comprehensive idempotency testing to ensure all slugification functions return the same result when called multiple times with the previous output
+- Added 32 new idempotency tests covering all three API tiers (simple, error-aware, and configurable) with various configurations
+- Added multiple iteration tests to verify deep idempotency (testing more than just two iterations)
+
+### Fixed
+- Fixed truncation function to ensure idempotency by preventing trailing separators in truncated slugs
+- Enhanced `truncate_slug` function to trim trailing separators in non-word-boundary truncation, ensuring f(f(x)) = f(x)
+
+### Technical
+- Created new test module `test/idempotency_test.gleam` with comprehensive idempotency coverage
+- All 173 tests pass, including the new idempotency tests
+- Functions now properly maintain mathematical idempotency property
+
 ## [1.0.6] - 2025-06-22
 
 ### Verified

@@ -377,7 +377,24 @@ pub fn truncate_slug(
     False -> {
       case word_boundary {
         True -> truncate_at_word_boundary(text, max_length, separator)
-        False -> Ok(string.slice(text, 0, max_length))
+        False -> truncate_without_word_boundary(text, max_length, separator)
+      }
+    }
+  }
+}
+
+fn truncate_without_word_boundary(
+  text: String,
+  max_length: Int,
+  separator: String,
+) -> Result(String, SlugifyError) {
+  let truncated = string.slice(text, 0, max_length)
+  case separator {
+    "" -> Ok(truncated)
+    _ -> {
+      case string.ends_with(truncated, separator) {
+        True -> Ok(string.drop_end(truncated, string.length(separator)))
+        False -> Ok(truncated)
       }
     }
   }
