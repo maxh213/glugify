@@ -108,13 +108,15 @@ fn apply_separators_with_tree(
             True -> apply_separators_with_tree(rest, separator, builder, True)
             False -> {
               case rest {
-                [] -> builder  // Don't add separator at the end
-                _ -> apply_separators_with_tree(
-                  rest,
-                  separator,
-                  string_tree.append(builder, separator),
-                  True,
-                )
+                [] -> builder
+                // Don't add separator at the end
+                _ ->
+                  apply_separators_with_tree(
+                    rest,
+                    separator,
+                    string_tree.append(builder, separator),
+                    True,
+                  )
               }
             }
           }

@@ -32,7 +32,7 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 - [x] Implement advanced features: stop words, custom replacements, word boundary truncation
 - [x] Add performance optimizations and benchmarking
 - [x] Add a consise and humble readme with examples of usage to make it easy for developers to understand and use the library
-- [ ] Add versioning and changelog.md adhering to "The format is based on Keep a Changelog (https://keepachangelog.com/en/1.0.0/), and this project adheres to Semantic Versioning (https://semver.org/spec/v2.0.0.html)."
+- [x] Add versioning and changelog.md adhering to "The format is based on Keep a Changelog (https://keepachangelog.com/en/1.0.0/), and this project adheres to Semantic Versioning (https://semver.org/spec/v2.0.0.html)."
 
 ### Quality Assurance
 - [ ] Test cross-platform compatibility (Erlang and JavaScript targets)

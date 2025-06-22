@@ -1,13 +1,12 @@
 name = "glugify"
 version = "1.0.0"
-
-# Fill out these fields if you intend to generate HTML documentation or publish
-# your project to the Hex package manager.
-#
-# description = ""
-# licences = ["Apache-2.0"]
-# repository = { type = "github", user = "", repo = "" }
-# links = [{ title = "Website", href = "" }]
+description = "A robust, type-safe slugification library for Gleam that converts text into URL-friendly slugs"
+licences = ["Apache-2.0"]
+repository = { type = "github", user = "anima-international", repo = "glugify" }
+links = [
+  { title = "Documentation", href = "https://hexdocs.pm/glugify" },
+  { title = "Changelog", href = "https://github.com/anima-international/glugify/blob/main/CHANGELOG.md" }
+]
 #
 # For a full reference of all the available options, you can have a look at
 # https://gleam.run/writing-gleam/gleam-toml/.
