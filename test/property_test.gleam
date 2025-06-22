@@ -46,12 +46,79 @@ pub fn slugify_non_empty_input_produces_result_test() {
                     _ -> False
                   }
                 })
-              // If there are ASCII characters, this shouldn't be EmptyInput
-              case list.length(ascii_chars) > 0 {
-                True ->
-                  panic as "ASCII input should not result in EmptyInput error"
+              // If there are ASCII alphanumeric characters, this shouldn't be EmptyInput
+              let alphanumeric_chars =
+                list.filter(ascii_chars, fn(char) {
+                  case char {
+                    "a"
+                    | "b"
+                    | "c"
+                    | "d"
+                    | "e"
+                    | "f"
+                    | "g"
+                    | "h"
+                    | "i"
+                    | "j"
+                    | "k"
+                    | "l"
+                    | "m"
+                    | "n"
+                    | "o"
+                    | "p"
+                    | "q"
+                    | "r"
+                    | "s"
+                    | "t"
+                    | "u"
+                    | "v"
+                    | "w"
+                    | "x"
+                    | "y"
+                    | "z"
+                    | "A"
+                    | "B"
+                    | "C"
+                    | "D"
+                    | "E"
+                    | "F"
+                    | "G"
+                    | "H"
+                    | "I"
+                    | "J"
+                    | "K"
+                    | "L"
+                    | "M"
+                    | "N"
+                    | "O"
+                    | "P"
+                    | "Q"
+                    | "R"
+                    | "S"
+                    | "T"
+                    | "U"
+                    | "V"
+                    | "W"
+                    | "X"
+                    | "Y"
+                    | "Z"
+                    | "0"
+                    | "1"
+                    | "2"
+                    | "3"
+                    | "4"
+                    | "5"
+                    | "6"
+                    | "7"
+                    | "8"
+                    | "9" -> True
+                    _ -> False
+                  }
+                })
+              case list.length(alphanumeric_chars) > 0 {
+                True -> should.fail()
                 False -> Nil
-                // Non-ASCII only is acceptable for EmptyInput
+                // Only symbols/punctuation is acceptable for EmptyInput
               }
             }
           }
@@ -386,11 +453,11 @@ pub fn slugify_reversibility_test() {
             True -> Nil
             // Good, some characters preserved
             False -> {
-              // This might happen with very short inputs or special cases
-              case string.length(input) <= 2 {
-                True -> Nil
-                // Short inputs might not preserve chars
-                False -> panic as "No characters preserved from input"
+              // For alphanumeric input, some characters should be preserved
+              case string.length(input) >= 3 {
+                True -> should.fail()
+                False -> Nil
+                // Very short inputs might not preserve all chars
               }
             }
           }

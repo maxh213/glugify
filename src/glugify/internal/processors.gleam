@@ -46,14 +46,21 @@ pub fn apply_separators(
     "" -> {
       text
       |> string.to_graphemes
-      |> list.filter(is_alphanumeric)
+      |> list.filter(fn(char) {
+        is_alphanumeric_or_unicode(char, config.allow_unicode)
+      })
       |> string.join("")
       |> Ok
     }
     _ -> {
       text
       |> string.to_graphemes
-      |> apply_separators_simple(config.separator, [], False)
+      |> apply_separators_simple(
+        config.separator,
+        config.allow_unicode,
+        [],
+        False,
+      )
       |> string.join("")
       |> Ok
     }
@@ -63,23 +70,33 @@ pub fn apply_separators(
 fn apply_separators_simple(
   graphemes: List(String),
   separator: String,
+  allow_unicode: Bool,
   acc: List(String),
   last_was_separator: Bool,
 ) -> List(String) {
   case graphemes {
     [] -> list.reverse(acc)
     [char, ..rest] -> {
-      case is_alphanumeric(char) {
-        True -> apply_separators_simple(rest, separator, [char, ..acc], False)
+      case is_alphanumeric_or_unicode(char, allow_unicode) {
+        True ->
+          apply_separators_simple(
+            rest,
+            separator,
+            allow_unicode,
+            [char, ..acc],
+            False,
+          )
         False -> {
           case last_was_separator || list.is_empty(acc) {
-            True -> apply_separators_simple(rest, separator, acc, True)
+            True ->
+              apply_separators_simple(rest, separator, allow_unicode, acc, True)
             False -> {
               let separator_chars =
                 string.to_graphemes(separator) |> list.reverse
               apply_separators_simple(
                 rest,
                 separator,
+                allow_unicode,
                 list.append(separator_chars, acc),
                 True,
               )
@@ -353,12 +370,13 @@ pub fn truncate_slug(
   text: String,
   max_length: Int,
   word_boundary: Bool,
+  separator: String,
 ) -> Result(String, SlugifyError) {
   case string.length(text) <= max_length {
     True -> Ok(text)
     False -> {
       case word_boundary {
-        True -> truncate_at_word_boundary(text, max_length)
+        True -> truncate_at_word_boundary(text, max_length, separator)
         False -> Ok(string.slice(text, 0, max_length))
       }
     }
@@ -368,53 +386,45 @@ pub fn truncate_slug(
 fn truncate_at_word_boundary(
   text: String,
   max_length: Int,
+  separator: String,
 ) -> Result(String, SlugifyError) {
   let truncated = string.slice(text, 0, max_length)
-  case string.last(truncated) {
-    Ok(last_char) -> {
-      case last_char {
-        "-" | "_" -> Ok(string.drop_end(truncated, 1))
-        _ -> {
-          case find_last_separator(truncated, "-") {
+  case separator {
+    "" -> Ok(truncated)
+    _ -> {
+      case string.ends_with(truncated, separator) {
+        True -> Ok(string.drop_end(truncated, string.length(separator)))
+        False -> {
+          case find_last_separator(truncated, separator) {
             Ok(index) -> Ok(string.slice(truncated, 0, index))
             Error(_) -> Ok(truncated)
           }
         }
       }
     }
-    Error(_) -> Ok(truncated)
   }
 }
 
 fn find_last_separator(text: String, separator: String) -> Result(Int, Nil) {
-  let graphemes = string.to_graphemes(text)
-  find_last_separator_helper(graphemes, separator, 0, Error(Nil))
+  find_last_separator_by_string(
+    text,
+    separator,
+    string.length(text) - string.length(separator),
+  )
 }
 
-fn find_last_separator_helper(
-  graphemes: List(String),
+fn find_last_separator_by_string(
+  text: String,
   separator: String,
-  current_index: Int,
-  last_found: Result(Int, Nil),
+  start_index: Int,
 ) -> Result(Int, Nil) {
-  case graphemes {
-    [] -> last_found
-    [char, ..rest] -> {
-      case char == separator {
-        True ->
-          find_last_separator_helper(
-            rest,
-            separator,
-            current_index + 1,
-            Ok(current_index),
-          )
-        False ->
-          find_last_separator_helper(
-            rest,
-            separator,
-            current_index + 1,
-            last_found,
-          )
+  case start_index < 0 {
+    True -> Error(Nil)
+    False -> {
+      let substr = string.slice(text, start_index, string.length(separator))
+      case substr == separator {
+        True -> Ok(start_index)
+        False -> find_last_separator_by_string(text, separator, start_index - 1)
       }
     }
   }

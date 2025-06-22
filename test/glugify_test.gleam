@@ -218,7 +218,7 @@ pub fn slugify_with_allow_unicode_test() {
 
   glugify.slugify_with("Hello 世界", config)
   |> should.be_ok
-  |> should.equal("hello")
+  |> should.equal("hello-世界")
 }
 
 // EDGE CASE TESTS
@@ -576,7 +576,7 @@ pub fn slugify_with_all_advanced_features_test() {
 
   glugify.slugify_with("The history of C++ programming", config)
   |> should.be_ok
-  |> should.equal("history_c_plus_plus_programmin")
+  |> should.equal("history_c_plus_plus")
 }
 
 // EDGE CASES FOR NEW FEATURES

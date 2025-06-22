@@ -44,10 +44,8 @@ pub fn tier_3_configurable_api_test() {
     |> config.with_max_length(20)
     |> config.with_word_boundary(True)
 
-  // NOTE: Current implementation truncates at character boundary, not word boundary
-  // even when word_boundary is True. Expected: "a_very_long_title", Actual: "a_very_long_title_th"
   glugify.slugify_with("A Very Long Title That Needs Truncation", custom_config)
-  |> should.equal(Ok("a_very_long_title_th"))
+  |> should.equal(Ok("a_very_long_title"))
 }
 
 pub fn custom_replacements_test() {
@@ -75,7 +73,7 @@ pub fn unicode_handling_preserve_test() {
     |> config.with_allow_unicode(True)
 
   glugify.slugify_with("Café naïve résumé", unicode_config)
-  |> should.equal(Ok("caf-na-ve-r-sum"))
+  |> should.equal(Ok("café-naïve-résumé"))
 }
 
 pub fn stop_words_test() {
@@ -118,7 +116,7 @@ pub fn various_configuration_options_test() {
     |> config.with_stop_words(["the", "a"])
 
   glugify.slugify_with("The Amazing @Café & Restaurant", comprehensive_config)
-  |> should.equal(Ok("The_Amazing_at_Caf_and_Restaurant"))
+  |> should.equal(Ok("The_Amazing_at_Café_and_Restaurant"))
 }
 
 pub fn edge_case_empty_input_test() {

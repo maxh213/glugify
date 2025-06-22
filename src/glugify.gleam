@@ -112,7 +112,12 @@ pub fn slugify_with(
   ))
   use truncated <- result.try(case config.max_length {
     option.Some(len) ->
-      processors.truncate_slug(trimmed, len, config.word_boundary)
+      processors.truncate_slug(
+        trimmed,
+        len,
+        config.word_boundary,
+        config.separator,
+      )
     option.None -> Ok(trimmed)
   })
 

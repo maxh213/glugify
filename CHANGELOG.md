@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.5] - 2025-06-22
+
+### Fixed
+- Fixed word boundary truncation bug where `truncate_slug` was hard-coded to use "-" separator instead of respecting the configured separator
+- Fixed Unicode character handling in `apply_separators` function where accented characters were being replaced with separators even when `allow_unicode=True`
+- Corrected "reward hacking" test expectations that masked implementation bugs:
+  - `tier_3_configurable_api_test` now correctly expects word boundary truncation to work
+  - `unicode_handling_preserve_test` now correctly expects Unicode characters to be preserved when `allow_unicode=True`
+  - `slugify_with_allow_unicode_test` now correctly expects Chinese characters to be preserved
+  - Fixed several other tests with incorrect expectations that hid real implementation issues
+
+### Changed
+- Modified `apply_separators` function to respect `allow_unicode` configuration when determining whether to preserve or replace characters
+- Updated `truncate_slug` function signature to accept and use the configured separator instead of hard-coded "-"
+- Enhanced `find_last_separator` implementation to properly handle multi-character separators using string slicing
+
 ## [1.0.4] - 2025-06-22
 
 ### Fixed
@@ -64,7 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core slugification logic foundation
 - Initial test framework setup
 
-[Unreleased]: https://github.com/anima-international/glugify/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/anima-international/glugify/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/anima-international/glugify/releases/tag/v1.0.5
 [1.0.4]: https://github.com/anima-international/glugify/releases/tag/v1.0.4
 [1.0.3]: https://github.com/anima-international/glugify/releases/tag/v1.0.3
 [1.0.2]: https://github.com/anima-international/glugify/releases/tag/v1.0.2

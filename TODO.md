@@ -51,8 +51,10 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 - [x] Run through all the codebase and inspect the tests to check for something that looks like it was added so the AI developer could reward hack their way around a bug. Make sure all the expectations in the tests are inline with the brief. Think deeply about the brief and what this project is trying to achieve.
 
 ## v1.0.4
-- [ ] Reviewed all test files and identified several issues that were reward hacking or misaligned with brief
+- [x] Fixed multi-character separator bug where separators like "--" were incorrectly filtered out by the `remove_invalid_chars` function
 
+## v1.0.5
+- [x] Run through all the codebase and inspect the tests to check for something that looks like it was added so the AI developer could reward hack their way around a bug. Make sure all the expectations in the tests are inline with the brief. Think deeply about the brief and what this project is trying to achieve.
 
 ## Development Guidelines
 
