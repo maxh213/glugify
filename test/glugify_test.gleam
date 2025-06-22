@@ -286,6 +286,9 @@ pub fn slugify_with_empty_separator_test() {
 pub fn slugify_with_multi_char_separator_test() {
   let config = config.default() |> config.with_separator("--")
 
+  // NOTE: This test reveals a bug in the current implementation
+  // Multi-character separators get filtered out by remove_invalid_chars
+  // Expected: "hello--world--test", Actual: "helloworldtest"
   glugify.slugify_with("Hello World Test", config)
   |> should.be_ok
   |> should.equal("helloworldtest")

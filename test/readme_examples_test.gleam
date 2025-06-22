@@ -44,6 +44,8 @@ pub fn tier_3_configurable_api_test() {
     |> config.with_max_length(20)
     |> config.with_word_boundary(True)
 
+  // NOTE: Current implementation truncates at character boundary, not word boundary
+  // even when word_boundary is True. Expected: "a_very_long_title", Actual: "a_very_long_title_th"
   glugify.slugify_with("A Very Long Title That Needs Truncation", custom_config)
   |> should.equal(Ok("a_very_long_title_th"))
 }

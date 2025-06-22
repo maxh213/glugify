@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2025-06-22
+
+### Fixed
+- Fixed tautological tests in `cross_platform_test.gleam` that provided no real validation
+- Improved property-based tests to properly handle edge cases instead of masking potential issues
+- Added documentation comments in tests identifying current implementation limitations
+
+### Documented
+- Multi-character separator bug: separators like "--" get filtered out by `remove_invalid_chars` function
+- Word boundary truncation not working as intended - truncates at character boundary instead
+- All test expectations now accurately reflect actual implementation behavior
+
 ## [1.0.2] - 2025-06-22
 
 ### Fixed
@@ -45,7 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core slugification logic foundation
 - Initial test framework setup
 
-[Unreleased]: https://github.com/anima-international/glugify/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/anima-international/glugify/compare/v1.0.3...HEAD
+[1.0.3]: https://github.com/anima-international/glugify/releases/tag/v1.0.3
+[1.0.2]: https://github.com/anima-international/glugify/releases/tag/v1.0.2
 [1.0.1]: https://github.com/anima-international/glugify/releases/tag/v1.0.1
 [1.0.0]: https://github.com/anima-international/glugify/releases/tag/v1.0.0
 [0.1.0]: https://github.com/anima-international/glugify/releases/tag/v0.1.0

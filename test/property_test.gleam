@@ -31,11 +31,29 @@ pub fn slugify_non_empty_input_produces_result_test() {
       case result {
         Ok(_) -> Nil
         Error(errors.EmptyInput) ->
-          // If we get EmptyInput error, the string should only contain whitespace/separators
+          // If we get EmptyInput error, the input should effectively be empty after processing
           case string.trim(input) {
             "" -> Nil
-            // This is expected for whitespace-only strings
-            _ -> panic as "Expected Ok result for non-empty trimmed string"
+            // Expected for whitespace-only strings
+            trimmed -> {
+              // For non-whitespace strings that result in EmptyInput, 
+              // they must contain only non-transliterable characters
+              let ascii_chars =
+                string.to_graphemes(trimmed)
+                |> list.filter(fn(char) {
+                  case string.to_utf_codepoints(char) {
+                    [codepoint] -> string.utf_codepoint_to_int(codepoint) <= 127
+                    _ -> False
+                  }
+                })
+              // If there are ASCII characters, this shouldn't be EmptyInput
+              case list.length(ascii_chars) > 0 {
+                True ->
+                  panic as "ASCII input should not result in EmptyInput error"
+                False -> Nil
+                // Non-ASCII only is acceptable for EmptyInput
+              }
+            }
           }
         Error(_) -> Nil
         // Other errors are acceptable for general strings

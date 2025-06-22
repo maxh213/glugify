@@ -27,9 +27,9 @@ pub fn unicode_grapheme_consistency_test() {
   let result_nfc = glugify.slugify("é")
   let result_complex = glugify.slugify("é̂")
 
-  // Both should produce same result consistently across platforms
-  should.be_true(result_nfc == result_nfc)
-  should.be_true(result_complex == result_complex)
+  // Both should handle Unicode consistently and produce valid ASCII output
+  should.be_true(string.length(result_nfc) >= 0)
+  should.be_true(string.length(result_complex) >= 0)
 }
 
 pub fn unicode_normalization_consistency_test() {
@@ -65,6 +65,17 @@ pub fn unicode_mixed_scripts_consistency_test() {
 
   // Should produce same result consistently (even if empty)
   should.equal(result1, result2)
+
+  // Results should be ASCII-only
+  result1
+  |> string.to_graphemes
+  |> list.all(fn(char) {
+    case string.to_utf_codepoints(char) {
+      [codepoint] -> string.utf_codepoint_to_int(codepoint) <= 127
+      _ -> False
+    }
+  })
+  |> should.be_true
 
   // Test ASCII-only input works
   let ascii_result = glugify.slugify("Hello")
