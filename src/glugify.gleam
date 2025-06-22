@@ -64,7 +64,6 @@ pub fn try_slugify(text: String) -> Result(String, SlugifyError) {
 /// ## Errors
 /// 
 /// - `EmptyInput`: When the input text is empty
-/// - `InvalidInput`: When the input contains invalid characters
 /// - `ConfigurationError`: When the configuration is invalid
 /// - `TransliterationFailed`: When a character cannot be transliterated
 pub fn slugify_with(

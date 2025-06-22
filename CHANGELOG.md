@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.10] - 2025-06-22
+
+### Removed
+- Removed unused `TooLong` error type that was never triggered in the codebase
+- Removed unused `InvalidInput` error type that was never triggered in the codebase  
+- Removed unused `validate_max_length` function from `internal/validators.gleam`
+
+### Changed
+- Simplified `SlugifyError` type to only include errors that can actually occur: `EmptyInput`, `TransliterationFailed`, and `ConfigurationError`
+- Updated API documentation to reflect the removal of unused error types
+- Cleaned up error handling examples in documentation
+
+### Technical Notes
+- The library correctly handles long input by truncating rather than erroring, following slugification best practices
+- Input validation focuses on processing rather than rejection, aligning with the library's design philosophy
+
 ## [1.0.9] - 2025-06-22
 
 ### Added

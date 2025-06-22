@@ -68,6 +68,16 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 ## v1.0.9
 - [x] Add comprehensive tier 2 API error handling tests for all error types that can actually be triggered
 
+## v1.0.10
+- [x] Evaluate and either implement or remove unused `TooLong` error type - currently defined in `errors.gleam` but never triggered in the codebase
+- [x] Evaluate and either implement or remove unused `InvalidInput` error type - currently defined in `errors.gleam` but never triggered in the codebase
+- [x] Consider adding input length validation if `TooLong` should be implemented, or remove the error type and update documentation - REMOVED: Library correctly handles long input through truncation
+- [x] Consider adding input validation for malicious/invalid characters if `InvalidInput` should be implemented, or remove the error type and update documentation - REMOVED: Library processes all input rather than rejecting it
+
+## v1.0.11
+- [ ] Run through all the codebase and inspect the tests to check for something that looks like it was added so the AI developer could reward hack their way around a bug. Make sure all the expectations in the tests are inline with the brief. Think deeply about the brief and what this project is trying to achieve.
+
+
 ## Development Guidelines
 
 Each task should be completed following these principles:

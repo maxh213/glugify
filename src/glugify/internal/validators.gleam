@@ -7,14 +7,3 @@ pub fn validate_input(text: String) -> Result(String, SlugifyError) {
     trimmed -> Ok(trimmed)
   }
 }
-
-pub fn validate_max_length(
-  text: String,
-  max_length: Int,
-) -> Result(String, SlugifyError) {
-  let current_length = string.length(text)
-  case current_length > max_length {
-    True -> Error(errors.TooLong(current_length, max_length))
-    False -> Ok(text)
-  }
-}
