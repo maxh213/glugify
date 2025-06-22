@@ -1,10 +1,16 @@
 import gleam/dict
 
+/// Returns the combined character mapping that includes both Latin extended
+/// characters and common symbols.
+pub fn combined_char_map() -> dict.Dict(String, String) {
+  dict.merge(latin_extended_map(), symbol_map())
+}
+
 pub fn latin_extended_map() -> dict.Dict(String, String) {
   dict.from_list([
     #("à", "a"),
     #("á", "a"),
-    #("ä", "ae"),
+    #("ä", "a"),
     #("ã", "a"),
     #("â", "a"),
     #("å", "a"),
@@ -18,18 +24,19 @@ pub fn latin_extended_map() -> dict.Dict(String, String) {
     #("î", "i"),
     #("ò", "o"),
     #("ó", "o"),
-    #("ö", "oe"),
+    #("ö", "o"),
     #("õ", "o"),
     #("ô", "o"),
     #("ù", "u"),
     #("ú", "u"),
-    #("ü", "ue"),
+    #("ü", "u"),
     #("û", "u"),
     #("ç", "c"),
     #("ñ", "n"),
+    #("ß", "ss"),
     #("À", "A"),
     #("Á", "A"),
-    #("Ä", "AE"),
+    #("Ä", "A"),
     #("Ã", "A"),
     #("Â", "A"),
     #("Å", "A"),
@@ -43,12 +50,12 @@ pub fn latin_extended_map() -> dict.Dict(String, String) {
     #("Î", "I"),
     #("Ò", "O"),
     #("Ó", "O"),
-    #("Ö", "OE"),
+    #("Ö", "O"),
     #("Õ", "O"),
     #("Ô", "O"),
     #("Ù", "U"),
     #("Ú", "U"),
-    #("Ü", "UE"),
+    #("Ü", "U"),
     #("Û", "U"),
     #("Ç", "C"),
     #("Ñ", "N"),

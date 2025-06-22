@@ -44,6 +44,9 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 - [x] Make sure all functions are properly documented for hex so that it can automatically generate documentation
 - [x] move this to the main branch, push it, and tag it with a new version number and update the changelog.md
 
+## v1.0.1
+- [x] Make it so unicode.gleam doesn't have it's own char_map, utilise the internal char_maps.gleam instead
+
 ## Development Guidelines
 
 Each task should be completed following these principles:

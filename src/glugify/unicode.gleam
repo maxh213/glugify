@@ -3,6 +3,7 @@ import gleam/list
 import gleam/result
 import gleam/string
 import glugify/errors.{type SlugifyError}
+import glugify/internal/char_maps
 
 /// Transliterates Unicode text to ASCII equivalents.
 /// 
@@ -100,7 +101,7 @@ fn transliterate_graphemes(
   case graphemes {
     [] -> Ok(list.reverse(acc))
     [grapheme, ..rest] -> {
-      case dict.get(get_char_map(), grapheme) {
+      case dict.get(char_maps.combined_char_map(), grapheme) {
         Ok(replacement) -> transliterate_graphemes(rest, [replacement, ..acc])
         Error(_) -> {
           case is_ascii_safe(grapheme) {
@@ -131,66 +132,4 @@ fn is_ascii_safe(char: String) -> Bool {
     }
     _ -> False
   }
-}
-
-fn get_char_map() -> dict.Dict(String, String) {
-  dict.from_list([
-    #("à", "a"),
-    #("á", "a"),
-    #("ä", "a"),
-    #("ã", "a"),
-    #("â", "a"),
-    #("å", "a"),
-    #("è", "e"),
-    #("é", "e"),
-    #("ë", "e"),
-    #("ê", "e"),
-    #("ì", "i"),
-    #("í", "i"),
-    #("ï", "i"),
-    #("î", "i"),
-    #("ò", "o"),
-    #("ó", "o"),
-    #("ö", "o"),
-    #("õ", "o"),
-    #("ô", "o"),
-    #("ù", "u"),
-    #("ú", "u"),
-    #("ü", "u"),
-    #("û", "u"),
-    #("ç", "c"),
-    #("ñ", "n"),
-    #("ß", "ss"),
-    #("À", "A"),
-    #("Á", "A"),
-    #("Ä", "A"),
-    #("Ã", "A"),
-    #("Â", "A"),
-    #("Å", "A"),
-    #("È", "E"),
-    #("É", "E"),
-    #("Ë", "E"),
-    #("Ê", "E"),
-    #("Ì", "I"),
-    #("Í", "I"),
-    #("Ï", "I"),
-    #("Î", "I"),
-    #("Ò", "O"),
-    #("Ó", "O"),
-    #("Ö", "O"),
-    #("Õ", "O"),
-    #("Ô", "O"),
-    #("Ù", "U"),
-    #("Ú", "U"),
-    #("Ü", "U"),
-    #("Û", "U"),
-    #("Ç", "C"),
-    #("Ñ", "N"),
-    #("&", " and "),
-    #("@", " at "),
-    #("%", " percent "),
-    #("$", " dollar "),
-    #("€", " euro "),
-    #("£", " pound "),
-  ])
 }

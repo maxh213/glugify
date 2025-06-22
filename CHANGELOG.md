@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2025-06-22
+
+### Changed
+- Refactored `unicode.gleam` to use centralized character mappings from `char_maps.gleam` instead of duplicating the mapping tables, improving maintainability and reducing code duplication
+
 ## [1.0.0] - 2025-06-22
 
 ### Added
@@ -33,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core slugification logic foundation
 - Initial test framework setup
 
-[Unreleased]: https://github.com/username/glugify/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/username/glugify/releases/tag/v1.0.0
-[0.1.0]: https://github.com/username/glugify/releases/tag/v0.1.0
+[Unreleased]: https://github.com/anima-international/glugify/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/anima-international/glugify/releases/tag/v1.0.1
+[1.0.0]: https://github.com/anima-international/glugify/releases/tag/v1.0.0
+[0.1.0]: https://github.com/anima-international/glugify/releases/tag/v0.1.0
