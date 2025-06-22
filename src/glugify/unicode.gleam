@@ -18,6 +18,16 @@ pub fn validate_ascii_only(text: String) -> Result(String, SlugifyError) {
   |> result.map(fn(_) { text })
 }
 
+pub fn validate_ascii_or_unicode(
+  text: String,
+  allow_unicode: Bool,
+) -> Result(String, SlugifyError) {
+  case allow_unicode {
+    True -> Ok(text)
+    False -> validate_ascii_only(text)
+  }
+}
+
 fn validate_ascii_graphemes(
   graphemes: List(String),
 ) -> Result(Nil, SlugifyError) {
@@ -76,7 +86,7 @@ fn get_char_map() -> dict.Dict(String, String) {
   dict.from_list([
     #("à", "a"),
     #("á", "a"),
-    #("ä", "ae"),
+    #("ä", "a"),
     #("ã", "a"),
     #("â", "a"),
     #("å", "a"),
@@ -90,18 +100,19 @@ fn get_char_map() -> dict.Dict(String, String) {
     #("î", "i"),
     #("ò", "o"),
     #("ó", "o"),
-    #("ö", "oe"),
+    #("ö", "o"),
     #("õ", "o"),
     #("ô", "o"),
     #("ù", "u"),
     #("ú", "u"),
-    #("ü", "ue"),
+    #("ü", "u"),
     #("û", "u"),
     #("ç", "c"),
     #("ñ", "n"),
+    #("ß", "ss"),
     #("À", "A"),
     #("Á", "A"),
-    #("Ä", "AE"),
+    #("Ä", "A"),
     #("Ã", "A"),
     #("Â", "A"),
     #("Å", "A"),
@@ -115,12 +126,12 @@ fn get_char_map() -> dict.Dict(String, String) {
     #("Î", "I"),
     #("Ò", "O"),
     #("Ó", "O"),
-    #("Ö", "OE"),
+    #("Ö", "O"),
     #("Õ", "O"),
     #("Ô", "O"),
     #("Ù", "U"),
     #("Ú", "U"),
-    #("Ü", "UE"),
+    #("Ü", "U"),
     #("Û", "U"),
     #("Ç", "C"),
     #("Ñ", "N"),

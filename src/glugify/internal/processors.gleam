@@ -39,11 +39,53 @@ pub fn apply_separators(
   text: String,
   config: Config,
 ) -> Result(String, SlugifyError) {
-  text
-  |> string.to_graphemes
-  |> apply_separators_graphemes(config.separator, [])
-  |> string.join("")
-  |> Ok
+  case config.separator {
+    "" -> {
+      text
+      |> string.to_graphemes
+      |> list.filter(is_alphanumeric)
+      |> string.join("")
+      |> Ok
+    }
+    _ -> {
+      text
+      |> string.to_graphemes
+      |> apply_separators_simple(config.separator, [], False)
+      |> string.join("")
+      |> Ok
+    }
+  }
+}
+
+fn apply_separators_simple(
+  graphemes: List(String),
+  separator: String,
+  acc: List(String),
+  last_was_separator: Bool,
+) -> List(String) {
+  case graphemes {
+    [] -> list.reverse(acc)
+    [char, ..rest] -> {
+      case is_alphanumeric(char) {
+        True -> apply_separators_simple(rest, separator, [char, ..acc], False)
+        False -> {
+          case last_was_separator || list.is_empty(acc) {
+            True -> apply_separators_simple(rest, separator, acc, True)
+            False -> {
+              let separator_chars =
+                string.to_graphemes(separator) |> list.reverse
+              apply_separators_simple(
+                rest,
+                separator,
+                list.append(separator_chars, acc),
+                True,
+              )
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 fn apply_separators_graphemes(
@@ -59,11 +101,53 @@ fn apply_separators_graphemes(
         False -> {
           case acc {
             [] -> apply_separators_graphemes(rest, separator, acc)
-            [sep, ..] if sep == separator ->
-              apply_separators_graphemes(rest, separator, acc)
-            _ -> apply_separators_graphemes(rest, separator, [separator, ..acc])
+            _ -> {
+              case separator {
+                "" -> apply_separators_graphemes(rest, separator, acc)
+                _ -> {
+                  case ends_with_separator(acc, separator) {
+                    True -> apply_separators_graphemes(rest, separator, acc)
+                    False -> {
+                      let separator_chars =
+                        string.to_graphemes(separator) |> list.reverse
+                      apply_separators_graphemes(
+                        rest,
+                        separator,
+                        list.append(separator_chars, acc),
+                      )
+                    }
+                  }
+                }
+              }
+            }
           }
         }
+      }
+    }
+  }
+}
+
+fn ends_with_separator(acc: List(String), separator: String) -> Bool {
+  case separator {
+    "" -> False
+    _ -> {
+      let separator_chars = string.to_graphemes(separator) |> list.reverse
+      ends_with_separator_helper(acc, separator_chars)
+    }
+  }
+}
+
+fn ends_with_separator_helper(
+  acc: List(String),
+  separator_chars: List(String),
+) -> Bool {
+  case separator_chars {
+    [] -> True
+    [sep_char, ..rest_sep] -> {
+      case acc {
+        [acc_char, ..rest_acc] if acc_char == sep_char ->
+          ends_with_separator_helper(rest_acc, rest_sep)
+        _ -> False
       }
     }
   }
@@ -84,33 +168,63 @@ fn is_alphanumeric(char: String) -> Bool {
   }
 }
 
+fn is_alphanumeric_or_unicode(char: String, allow_unicode: Bool) -> Bool {
+  case allow_unicode {
+    True -> is_alphanumeric(char) || is_unicode_char(char)
+    False -> is_alphanumeric(char)
+  }
+}
+
+fn is_unicode_char(char: String) -> Bool {
+  case string.to_utf_codepoints(char) {
+    [codepoint] -> {
+      let code = string.utf_codepoint_to_int(codepoint)
+      code > 127
+    }
+    _ -> False
+  }
+}
+
+fn is_ascii_printable(char: String) -> Bool {
+  case string.to_utf_codepoints(char) {
+    [codepoint] -> {
+      let code = string.utf_codepoint_to_int(codepoint)
+      code >= 32 && code <= 126
+    }
+    _ -> False
+  }
+}
+
 pub fn remove_invalid_chars(
   text: String,
   config: Config,
 ) -> Result(String, SlugifyError) {
-  case config.allow_unicode {
-    True -> Ok(text)
-    False -> {
-      text
-      |> string.to_graphemes
-      |> filter_valid_chars(config.separator, [])
-      |> string.join("")
-      |> Ok
-    }
-  }
+  text
+  |> string.to_graphemes
+  |> filter_valid_chars_with_unicode(config.separator, config.allow_unicode, [])
+  |> string.join("")
+  |> Ok
 }
 
-fn filter_valid_chars(
+fn filter_valid_chars_with_unicode(
   graphemes: List(String),
   separator: String,
+  allow_unicode: Bool,
   acc: List(String),
 ) -> List(String) {
   case graphemes {
     [] -> list.reverse(acc)
     [char, ..rest] -> {
-      case is_alphanumeric(char) || char == separator {
-        True -> filter_valid_chars(rest, separator, [char, ..acc])
-        False -> filter_valid_chars(rest, separator, acc)
+      case
+        is_alphanumeric_or_unicode(char, allow_unicode) || char == separator
+      {
+        True ->
+          filter_valid_chars_with_unicode(rest, separator, allow_unicode, [
+            char,
+            ..acc
+          ])
+        False ->
+          filter_valid_chars_with_unicode(rest, separator, allow_unicode, acc)
       }
     }
   }
@@ -132,18 +246,90 @@ fn collapse_separators_graphemes(
   separator: String,
   acc: List(String),
 ) -> List(String) {
+  case separator {
+    "" -> list.reverse(list.append(list.reverse(graphemes), acc))
+    _ -> collapse_separators_helper(graphemes, separator, acc)
+  }
+}
+
+fn collapse_separators_helper(
+  graphemes: List(String),
+  separator: String,
+  acc: List(String),
+) -> List(String) {
   case graphemes {
     [] -> list.reverse(acc)
-    [char, ..rest] -> {
-      case char == separator {
+    _ -> {
+      case starts_with_separator(graphemes, separator) {
         True -> {
-          case acc {
-            [sep, ..] if sep == separator ->
-              collapse_separators_graphemes(rest, separator, acc)
-            _ -> collapse_separators_graphemes(rest, separator, [char, ..acc])
+          case ends_with_separator(acc, separator) {
+            True -> {
+              let remaining = drop_separator_prefix(graphemes, separator)
+              collapse_separators_helper(remaining, separator, acc)
+            }
+            False -> {
+              let separator_chars = string.to_graphemes(separator)
+              let remaining = drop_separator_prefix(graphemes, separator)
+              collapse_separators_helper(
+                remaining,
+                separator,
+                list.append(list.reverse(separator_chars), acc),
+              )
+            }
           }
         }
-        False -> collapse_separators_graphemes(rest, separator, [char, ..acc])
+        False -> {
+          case graphemes {
+            [char, ..rest] ->
+              collapse_separators_helper(rest, separator, [char, ..acc])
+            [] -> list.reverse(acc)
+          }
+        }
+      }
+    }
+  }
+}
+
+fn starts_with_separator(graphemes: List(String), separator: String) -> Bool {
+  let separator_chars = string.to_graphemes(separator)
+  starts_with_separator_helper(graphemes, separator_chars)
+}
+
+fn starts_with_separator_helper(
+  graphemes: List(String),
+  separator_chars: List(String),
+) -> Bool {
+  case separator_chars {
+    [] -> True
+    [sep_char, ..rest_sep] -> {
+      case graphemes {
+        [grapheme, ..rest_graphemes] if grapheme == sep_char ->
+          starts_with_separator_helper(rest_graphemes, rest_sep)
+        _ -> False
+      }
+    }
+  }
+}
+
+fn drop_separator_prefix(
+  graphemes: List(String),
+  separator: String,
+) -> List(String) {
+  let separator_chars = string.to_graphemes(separator)
+  drop_separator_prefix_helper(graphemes, separator_chars)
+}
+
+fn drop_separator_prefix_helper(
+  graphemes: List(String),
+  separator_chars: List(String),
+) -> List(String) {
+  case separator_chars {
+    [] -> graphemes
+    [_, ..rest_sep] -> {
+      case graphemes {
+        [_, ..rest_graphemes] ->
+          drop_separator_prefix_helper(rest_graphemes, rest_sep)
+        [] -> []
       }
     }
   }
@@ -172,24 +358,32 @@ fn trim_separator_ends(text: String, separator: String) -> String {
 }
 
 fn trim_separator_start(text: String, separator: String) -> String {
-  case string.starts_with(text, separator) {
-    True ->
-      trim_separator_start(
-        string.drop_start(text, string.length(separator)),
-        separator,
-      )
-    False -> text
+  case separator {
+    "" -> text
+    _ ->
+      case string.starts_with(text, separator) {
+        True ->
+          trim_separator_start(
+            string.drop_start(text, string.length(separator)),
+            separator,
+          )
+        False -> text
+      }
   }
 }
 
 fn trim_separator_end(text: String, separator: String) -> String {
-  case string.ends_with(text, separator) {
-    True ->
-      trim_separator_end(
-        string.drop_end(text, string.length(separator)),
-        separator,
-      )
-    False -> text
+  case separator {
+    "" -> text
+    _ ->
+      case string.ends_with(text, separator) {
+        True ->
+          trim_separator_end(
+            string.drop_end(text, string.length(separator)),
+            separator,
+          )
+        False -> text
+      }
   }
 }
 

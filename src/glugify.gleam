@@ -26,7 +26,7 @@ pub fn slugify_with(
   use normalized <- result.try(processors.normalize_whitespace(validated))
   use transliterated <- result.try(case config.transliterate {
     True -> unicode.transliterate_text(normalized)
-    False -> unicode.validate_ascii_only(normalized)
+    False -> unicode.validate_ascii_or_unicode(normalized, config.allow_unicode)
   })
   use lowercased <- result.try(
     Ok(case config.lowercase {
