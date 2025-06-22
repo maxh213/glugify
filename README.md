@@ -145,7 +145,9 @@ case glugify.try_slugify("") {
 
 Glugify is designed for high performance with comprehensive benchmarks covering various input types:
 
-### Benchmark Results (Erlang Target)
+### Benchmark Results
+
+#### Erlang Target
 
 | Test Case | Operations/sec | Avg Time per Operation |
 |-----------|----------------|------------------------|
@@ -158,17 +160,39 @@ Glugify is designed for high performance with comprehensive benchmarks covering 
 | Configured long text | 1 ops/sec | 629ms |
 | Configured complex text | 2 ops/sec | 350ms |
 
-**Summary:** 800 total operations executed with an average of 6 operations per second across all test scenarios.
+**Erlang Summary:** 800 total operations executed with an average of 6 operations per second.
+
+#### JavaScript Target
+
+| Test Case | Operations/sec | Avg Time per Operation |
+|-----------|----------------|------------------------|
+| Simple text ("Hello World") | 2,702 ops/sec | 0.38ms |
+| Unicode text with emojis | 3,030 ops/sec | 0.33ms |
+| Long text (200+ chars) | 347 ops/sec | 2.88ms |
+| Complex text (mixed case, symbols) | 613 ops/sec | 1.64ms |
+| Configured simple text | 4,761 ops/sec | 0.21ms |
+| Configured unicode text | 3,846 ops/sec | 0.27ms |
+| Configured long text | 342 ops/sec | 2.92ms |
+| Configured complex text | 602 ops/sec | 1.66ms |
+
+**JavaScript Summary:** 800 total operations executed with an average of 2,030 operations per second.
 
 ### Performance Characteristics
 
+- **Target Performance**: JavaScript target significantly outperforms Erlang (300-700x faster for simple operations)
 - **Simple strings**: Optimized for common use cases with minimal processing overhead
-- **Unicode handling**: Efficient transliteration with character mapping tables
+- **Unicode handling**: Efficient transliteration with character mapping tables on both targets
 - **Configuration impact**: Minimal performance penalty when using custom configurations
-- **String length scaling**: Performance decreases predictably with input length
+- **String length scaling**: Performance decreases predictably with input length on both targets
 - **Memory efficiency**: Uses string trees for optimal memory allocation patterns
 
-The benchmarks were run on Erlang target with 100 iterations per test case. Performance may vary depending on your specific use case and runtime environment.
+**Key Observations:**
+- JavaScript target excels at simple text processing (2,700+ ops/sec vs 4-21 ops/sec)
+- Both targets show similar relative performance patterns across different input types
+- Long text processing is the primary bottleneck on both platforms
+- Custom configuration actually improves performance on JavaScript target
+
+The benchmarks were run with 100 iterations per test case on both Erlang and JavaScript targets. Performance may vary depending on your specific use case and runtime environment.
 
 ## Installation
 
