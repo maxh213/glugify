@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.9] - 2025-06-22
+
+### Added
+- Added comprehensive tier 2 API error handling tests for all error types that can actually be triggered
+- Added `try_slugify_configuration_error_test` to test `ConfigurationError` when separator exceeds 10 characters
+- Added `try_slugify_transliteration_failed_test` to test `TransliterationFailed` error behavior in tier 2 API
+- Enhanced test coverage to verify that tier 2 API properly returns errors instead of empty strings like tier 1
+
+### Testing
+- All 175 tests pass including new error handling tests
+- Tier 2 API error handling now has complete coverage for all implementable error scenarios
+- Identified that `TooLong` and `InvalidInput` error types are defined but never used in current implementation
+
 ## [1.0.8] - 2025-06-22
 
 ### Fixed
@@ -123,14 +136,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core slugification logic foundation
 - Initial test framework setup
 
-[Unreleased]: https://github.com/anima-international/glugify/compare/v1.0.8...HEAD
-[1.0.8]: https://github.com/anima-international/glugify/releases/tag/v1.0.8
-[1.0.7]: https://github.com/anima-international/glugify/releases/tag/v1.0.7
-[1.0.6]: https://github.com/anima-international/glugify/releases/tag/v1.0.6
-[1.0.5]: https://github.com/anima-international/glugify/releases/tag/v1.0.5
-[1.0.4]: https://github.com/anima-international/glugify/releases/tag/v1.0.4
-[1.0.3]: https://github.com/anima-international/glugify/releases/tag/v1.0.3
-[1.0.2]: https://github.com/anima-international/glugify/releases/tag/v1.0.2
-[1.0.1]: https://github.com/anima-international/glugify/releases/tag/v1.0.1
-[1.0.0]: https://github.com/anima-international/glugify/releases/tag/v1.0.0
-[0.1.0]: https://github.com/anima-international/glugify/releases/tag/v0.1.0
+[Unreleased]: https://github.com/maxh213/glugify/compare/v1.0.9...HEAD
+[1.0.9]: https://github.com/maxh213/glugify/releases/tag/v1.0.9
+[1.0.8]: https://github.com/maxh213/glugify/releases/tag/v1.0.8
+[1.0.7]: https://github.com/maxh213/glugify/releases/tag/v1.0.7
+[1.0.6]: https://github.com/maxh213/glugify/releases/tag/v1.0.6
+[1.0.5]: https://github.com/maxh213/glugify/releases/tag/v1.0.5
+[1.0.4]: https://github.com/maxh213/glugify/releases/tag/v1.0.4
+[1.0.3]: https://github.com/maxh213/glugify/releases/tag/v1.0.3
+[1.0.2]: https://github.com/maxh213/glugify/releases/tag/v1.0.2
+[1.0.1]: https://github.com/maxh213/glugify/releases/tag/v1.0.1
+[1.0.0]: https://github.com/maxh213/glugify/releases/tag/v1.0.0
+[0.1.0]: https://github.com/maxh213/glugify/releases/tag/v0.1.0

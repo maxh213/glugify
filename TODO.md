@@ -65,6 +65,9 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 ## v1.0.8
 - [x] Run through all the codebase and inspect the tests to check for something that looks like it was added so the AI developer could reward hack their way around a bug. Make sure all the expectations in the tests are inline with the brief. Think deeply about the brief and what this project is trying to achieve.
 
+## v1.0.9
+- [x] Add comprehensive tier 2 API error handling tests for all error types that can actually be triggered
+
 ## Development Guidelines
 
 Each task should be completed following these principles:

@@ -122,6 +122,34 @@ pub fn try_slugify_success_with_accents_test() {
   |> should.equal("cafe")
 }
 
+// TIER 2 API ERROR TESTS - Testing all error types that can be returned
+
+pub fn try_slugify_configuration_error_test() {
+  // Test ConfigurationError with separator too long (>10 chars)
+  let config =
+    config.default() |> config.with_separator("this-separator-is-way-too-long")
+
+  glugify.slugify_with("Hello World", config)
+  |> should.be_error
+  |> should.equal(errors.ConfigurationError(
+    "Separator too long (max 10 characters)",
+  ))
+}
+
+pub fn try_slugify_transliteration_failed_test() {
+  // Test TransliterationFailed when transliteration is disabled but accents are present
+  glugify.try_slugify("Café")
+  |> should.be_ok
+  |> should.equal("cafe")
+
+  // But through tier 2 API with disabled transliteration should fail
+  let config = config.default() |> config.with_transliterate(False)
+  case glugify.slugify_with("Café", config) {
+    Error(errors.TransliterationFailed(char)) -> should.equal(char, "é")
+    _ -> should.fail()
+  }
+}
+
 // TIER 3 API TESTS (Configurable API)
 
 pub fn slugify_with_custom_separator_test() {
