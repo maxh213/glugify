@@ -134,8 +134,6 @@ import glugify/errors
 case glugify.try_slugify("") {
   Ok(slug) -> slug
   Error(errors.EmptyInput) -> "Please provide some text"
-  Error(errors.InvalidInput(reason)) -> "Invalid input: " <> reason
-  Error(errors.TooLong(current, max)) -> "Text too long"
   Error(errors.TransliterationFailed(char)) -> "Cannot transliterate: " <> char
   Error(errors.ConfigurationError(msg)) -> "Config error: " <> msg
 }

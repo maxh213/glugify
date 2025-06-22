@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.12] - 2025-06-22
+
+### Fixed
+- Updated README.md error handling section to accurately reflect the current codebase implementation
+- Removed references to non-existent error types `InvalidInput` and `TooLong` from documentation
+- Corrected error handling example to show only the three actual error types: `EmptyInput`, `TransliterationFailed`, and `ConfigurationError`
+
 ## [1.0.11] - 2025-06-22
 
 ### Fixed

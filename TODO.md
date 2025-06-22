@@ -2,8 +2,8 @@
 
 This TODO list provides a comprehensive roadmap for implementing the glugify slugification library for Gleam, following the implementation plan outlined in brief.md.
 
-## v1.0.11
-- [ ] 
+## v1.0.12
+- [x] update the error handling readme section to reflect the realy state of the code
 
 ## Development Guidelines
 
