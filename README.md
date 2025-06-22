@@ -149,14 +149,14 @@ Glugify is designed for high performance with comprehensive benchmarks covering 
 
 | Test Case | Operations/sec | Avg Time per Operation |
 |-----------|----------------|------------------------|
-| Simple text ("Hello World") | 4 ops/sec | 205ms |
-| Unicode text with emojis | 12 ops/sec | 80ms |
-| Long text (200+ chars) | 1 ops/sec | 589ms |
-| Complex text (mixed case, symbols) | 3 ops/sec | 320ms |
-| Configured simple text | 20 ops/sec | 49ms |
-| Configured unicode text | 11 ops/sec | 87ms |
-| Configured long text | 1 ops/sec | 611ms |
-| Configured complex text | 2 ops/sec | 346ms |
+| Simple text ("Hello World") | 4 ops/sec | 202ms |
+| Unicode text with emojis | 12 ops/sec | 83ms |
+| Long text (200+ chars) | 1 ops/sec | 619ms |
+| Complex text (mixed case, symbols) | 2 ops/sec | 336ms |
+| Configured simple text | 21 ops/sec | 47ms |
+| Configured unicode text | 11 ops/sec | 84ms |
+| Configured long text | 1 ops/sec | 629ms |
+| Configured complex text | 2 ops/sec | 350ms |
 
 **Summary:** 800 total operations executed with an average of 6 operations per second across all test scenarios.
 
