@@ -6,7 +6,7 @@ A slugification library for Gleam that converts text into URL-friendly slugs.
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/glugify/)
 
 ```sh
-gleam add glugify@1
+gleam add glugify
 ```
 
 ## Quick Start
@@ -209,6 +209,10 @@ gleam run   # Run the project
 gleam test  # Run the tests
 gleam format # Format the code
 ```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request!
 
 ## Documentation
 

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.8] - 2025-06-22
+
+### Fixed
+- Removed AI reward hacking patterns from property-based tests that were masking potential issues with overly complex workarounds
+- Simplified `slugify_non_empty_input_produces_result_test` to properly test that alphanumeric ASCII input always produces results
+- Simplified `slugify_preserve_case_property_test` to focus on actual case preservation behavior rather than complex edge case handling
+- Renamed and simplified `slugify_reversibility_test` to `slugify_content_preservation_test` with clearer expectations
+- Removed unnecessary hardcoded character enumeration (a-z, A-Z, 0-9) that was a clear sign of working around test failures rather than fixing core issues
+
+### Code Quality
+- Eliminated overly complex test logic that was trying to predict and handle every possible edge case rather than testing expected behavior
+- Tests now properly align with the brief's core requirement: creating URL-friendly slugs from text input
+- Removed unused helper functions after test simplification
+
 ## [1.0.7] - 2025-06-22
 
 ### Added
@@ -109,7 +123,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Core slugification logic foundation
 - Initial test framework setup
 
-[Unreleased]: https://github.com/anima-international/glugify/compare/v1.0.6...HEAD
+[Unreleased]: https://github.com/anima-international/glugify/compare/v1.0.8...HEAD
+[1.0.8]: https://github.com/anima-international/glugify/releases/tag/v1.0.8
+[1.0.7]: https://github.com/anima-international/glugify/releases/tag/v1.0.7
 [1.0.6]: https://github.com/anima-international/glugify/releases/tag/v1.0.6
 [1.0.5]: https://github.com/anima-international/glugify/releases/tag/v1.0.5
 [1.0.4]: https://github.com/anima-international/glugify/releases/tag/v1.0.4
