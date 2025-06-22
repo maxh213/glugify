@@ -37,7 +37,7 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 ### Quality Assurance
 - [x] Test cross-platform compatibility (Erlang and JavaScript targets)
 - [x] Add property-based testing for comprehensive edge case coverage
-- [ ] Add tests for each readme example and check they work as expected
+- [x] Add tests for each readme example and check they work as expected
 
 ## Development Guidelines
 
