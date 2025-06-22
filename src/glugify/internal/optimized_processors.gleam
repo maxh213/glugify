@@ -200,7 +200,10 @@ pub fn optimized_apply_custom_replacements(
   text: String,
   replacements: List(#(String, String)),
 ) -> Result(String, SlugifyError) {
-  apply_replacements_with_tree(text, replacements) |> Ok
+  text
+  |> apply_replacements_with_tree(replacements)
+  |> normalize_spaces_after_replacement
+  |> Ok
 }
 
 fn apply_replacements_with_tree(
@@ -212,6 +215,44 @@ fn apply_replacements_with_tree(
     [#(find, replace), ..rest] -> {
       let updated = string.replace(text, find, replace)
       apply_replacements_with_tree(updated, rest)
+    }
+  }
+}
+
+fn normalize_spaces_after_replacement(text: String) -> String {
+  text
+  |> string.to_graphemes
+  |> normalize_spaces_helper(string_tree.new(), False)
+  |> string_tree.to_string
+}
+
+fn normalize_spaces_helper(
+  graphemes: List(String),
+  builder: string_tree.StringTree,
+  last_was_space: Bool,
+) -> string_tree.StringTree {
+  case graphemes {
+    [] -> builder
+    [char, ..rest] -> {
+      case char == " " {
+        True -> {
+          case last_was_space {
+            True -> normalize_spaces_helper(rest, builder, True)
+            False ->
+              normalize_spaces_helper(
+                rest,
+                string_tree.append(builder, " "),
+                True,
+              )
+          }
+        }
+        False ->
+          normalize_spaces_helper(
+            rest,
+            string_tree.append(builder, char),
+            False,
+          )
+      }
     }
   }
 }

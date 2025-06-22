@@ -88,10 +88,13 @@ pub fn slugify_with(
         config.allow_unicode,
       )
   })
+  use normalized_after_transliteration <- result.try(
+    processors.normalize_whitespace(transliterated),
+  )
   use lowercased <- result.try({
     let result = case config.lowercase {
-      True -> string.lowercase(transliterated)
-      False -> transliterated
+      True -> string.lowercase(normalized_after_transliteration)
+      False -> normalized_after_transliteration
     }
     Ok(result)
   })

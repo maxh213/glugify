@@ -121,7 +121,7 @@ pub fn optimized_custom_replacements_test() {
     replacements,
   )
   |> should.be_ok()
-  |> should.equal("Ben  and  Jerry  at  Home")
+  |> should.equal("Ben and Jerry at Home")
 }
 
 pub fn batch_process_with_tree_test() {

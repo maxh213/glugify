@@ -45,7 +45,10 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 - [x] move this to the main branch, push it, and tag it with a new version number and update the changelog.md
 
 ## v1.0.1
-- [x] Make it so unicode.gleam doesn't have it's own char_map, utilise the internal char_maps.gleam instead
+- [ ] Make it so unicode.gleam doesn't have it's own char_map, utilise the internal char_maps.gleam instead
+
+## v1.0.2
+- [ ] Run through all the codebase and inspect the tests to check for something that looks like it was added so the AI developer could reward hack their way around a bug. Make sure all the expectations in the tests are inline with the brief. Think deeply about the brief and what this project is trying to achieve.
 
 ## Development Guidelines
 
