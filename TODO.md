@@ -35,8 +35,9 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 - [x] Add versioning and changelog.md adhering to "The format is based on Keep a Changelog (https://keepachangelog.com/en/1.0.0/), and this project adheres to Semantic Versioning (https://semver.org/spec/v2.0.0.html)."
 
 ### Quality Assurance
-- [ ] Test cross-platform compatibility (Erlang and JavaScript targets)
+- [x] Test cross-platform compatibility (Erlang and JavaScript targets)
 - [ ] Add property-based testing for comprehensive edge case coverage
+- [ ] Add tests for each readme example and check they work as expected
 
 ## Development Guidelines
 
