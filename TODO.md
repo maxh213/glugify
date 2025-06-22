@@ -9,10 +9,10 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 
 ### Core API Implementation
 - [x] Implement Tier 1 API: simple slugify(text: String) -> String function
-- [ ] Create error types in src/glugify/errors.gleam module
-- [ ] Implement Tier 2 API: try_slugify(text: String) -> Result(String, SlugifyError)
-- [ ] Create Config type in src/glugify/config.gleam with all configuration options
-- [ ] Implement Tier 3 API: slugify_with(text: String, config: Config) -> Result(String, SlugifyError)
+- [x] Create error types in src/glugify/errors.gleam module
+- [x] Implement Tier 2 API: try_slugify(text: String) -> Result(String, SlugifyError)
+- [x] Create Config type in src/glugify/config.gleam with all configuration options
+- [x] Implement Tier 3 API: slugify_with(text: String, config: Config) -> Result(String, SlugifyError)
 
 ### Testing Foundation
 - [x] Create comprehensive test suite covering positive, negative, and edge cases
@@ -20,15 +20,15 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 ## Phase 2: Core Processing (Medium Priority)
 
 ### Internal Modules
-- [ ] Create basic ASCII character mapping tables in src/glugify/internal/char_maps.gleam
-- [ ] Implement core processing pipeline functions in src/glugify/internal/processors.gleam
-- [ ] Add input validation functions in src/glugify/internal/validators.gleam
-- [ ] Implement Unicode handling and transliteration in src/glugify/unicode.gleam
+- [x] Create basic ASCII character mapping tables in src/glugify/internal/char_maps.gleam
+- [x] Implement core processing pipeline functions in src/glugify/internal/processors.gleam
+- [x] Add input validation functions in src/glugify/internal/validators.gleam
+- [x] Implement Unicode handling and transliteration in src/glugify/unicode.gleam
 
 ## Phase 3: Advanced Features (Low Priority)
 
 ### Extended Functionality
-- [ ] Add transformations module for functional composition pattern
+- [x] Add transformations module for functional composition pattern
 - [ ] Implement advanced features: stop words, custom replacements, word boundary truncation
 - [ ] Add performance optimizations and benchmarking
 
