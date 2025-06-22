@@ -4,6 +4,28 @@ import gleam/result
 import gleam/string
 import glugify/errors.{type SlugifyError}
 
+/// Transliterates Unicode text to ASCII equivalents.
+/// 
+/// This function converts accented characters and common symbols to their
+/// ASCII equivalents. Characters that cannot be transliterated will cause
+/// an error to be returned.
+/// 
+/// ## Examples
+/// 
+/// ```gleam
+/// transliterate_text("café")
+/// // -> Ok("cafe")
+/// 
+/// transliterate_text("naïve")
+/// // -> Ok("naive")
+/// 
+/// transliterate_text("Résumé")
+/// // -> Ok("Resume")
+/// ```
+/// 
+/// ## Errors
+/// 
+/// Returns `TransliterationFailed(char)` when a character cannot be converted.
 pub fn transliterate_text(text: String) -> Result(String, SlugifyError) {
   text
   |> string.to_graphemes
@@ -11,6 +33,21 @@ pub fn transliterate_text(text: String) -> Result(String, SlugifyError) {
   |> result.map(string.join(_, ""))
 }
 
+/// Validates that text contains only ASCII characters.
+/// 
+/// This function checks that all characters in the input are within
+/// the printable ASCII range (32-126). Non-ASCII characters will cause
+/// an error to be returned.
+/// 
+/// ## Examples
+/// 
+/// ```gleam
+/// validate_ascii_only("hello world")
+/// // -> Ok("hello world")
+/// 
+/// validate_ascii_only("café")
+/// // -> Error(TransliterationFailed("é"))
+/// ```
 pub fn validate_ascii_only(text: String) -> Result(String, SlugifyError) {
   text
   |> string.to_graphemes
@@ -18,6 +55,20 @@ pub fn validate_ascii_only(text: String) -> Result(String, SlugifyError) {
   |> result.map(fn(_) { text })
 }
 
+/// Validates text based on Unicode allowance settings.
+/// 
+/// If `allow_unicode` is `True`, all text is accepted.
+/// If `allow_unicode` is `False`, only ASCII text is accepted.
+/// 
+/// ## Examples
+/// 
+/// ```gleam
+/// validate_ascii_or_unicode("café", True)
+/// // -> Ok("café")
+/// 
+/// validate_ascii_or_unicode("café", False)
+/// // -> Error(TransliterationFailed("é"))
+/// ```
 pub fn validate_ascii_or_unicode(
   text: String,
   allow_unicode: Bool,
@@ -47,7 +98,7 @@ fn transliterate_graphemes(
   acc: List(String),
 ) -> Result(List(String), SlugifyError) {
   case graphemes {
-    [] -> Ok(acc |> list.reverse)
+    [] -> Ok(list.reverse(acc))
     [grapheme, ..rest] -> {
       case dict.get(get_char_map(), grapheme) {
         Ok(replacement) -> transliterate_graphemes(rest, [replacement, ..acc])

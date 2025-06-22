@@ -5,6 +5,10 @@ import gleam/string_tree
 import glugify
 import glugify/config
 
+/// Represents the results of a performance benchmark.
+/// 
+/// Contains timing information and operation counts for analyzing
+/// the performance characteristics of slugification operations.
 pub type BenchmarkResult {
   BenchmarkResult(
     name: String,
@@ -15,6 +19,17 @@ pub type BenchmarkResult {
   )
 }
 
+/// Benchmarks the simple `slugify` function with a given input.
+/// 
+/// Runs the slugification operation for the specified number of iterations
+/// and measures the total time, average time per operation, and operations per second.
+/// 
+/// ## Examples
+/// 
+/// ```gleam
+/// let result = benchmark_slugify("Hello World", 1000)
+/// // Measures performance of 1000 slugify operations
+/// ```
 pub fn benchmark_slugify(input: String, iterations: Int) -> BenchmarkResult {
   let start_time = get_time_microseconds()
 
@@ -48,6 +63,17 @@ fn benchmark_slugify_loop(input: String, remaining: Int, _acc: Int) -> Nil {
   }
 }
 
+/// Benchmarks the `slugify_with` function with custom configuration.
+/// 
+/// Runs the slugification operation with the provided configuration
+/// for the specified number of iterations and measures performance.
+/// 
+/// ## Examples
+/// 
+/// ```gleam
+/// let custom_config = config.default() |> config.with_separator("_")
+/// let result = benchmark_slugify_with_config("Hello World", custom_config, 1000)
+/// ```
 pub fn benchmark_slugify_with_config(
   input: String,
   config: config.Config,
@@ -90,6 +116,16 @@ fn benchmark_slugify_with_config_loop(
   }
 }
 
+/// Runs a comprehensive performance benchmark suite.
+/// 
+/// Tests various input types and configurations:
+/// - Simple text
+/// - Unicode text with emojis
+/// - Long text (200+ characters)
+/// - Complex text with mixed case and symbols
+/// - Both default and custom configurations
+/// 
+/// Returns a list of benchmark results for analysis.
 pub fn run_performance_suite() -> List(BenchmarkResult) {
   let simple_text = "Hello World"
   let unicode_text = "Héllo Wörld with émojis 🎉"
@@ -118,6 +154,10 @@ pub fn run_performance_suite() -> List(BenchmarkResult) {
   ]
 }
 
+/// Prints a formatted benchmark result to the console.
+/// 
+/// Outputs operation count, total time, operations per second,
+/// and average time per operation in a readable format.
 pub fn print_benchmark_result(result: BenchmarkResult) -> Nil {
   io.println(
     "Benchmark: "
@@ -135,6 +175,13 @@ pub fn print_benchmark_result(result: BenchmarkResult) -> Nil {
   )
 }
 
+/// Runs the complete performance suite and prints a formatted report.
+/// 
+/// This function executes all benchmarks and displays:
+/// - Individual benchmark results
+/// - Summary statistics
+/// - Total operations executed
+/// - Average operations per second across all tests
 pub fn print_performance_report() -> Nil {
   io.println("=== Glugify Performance Benchmark Report ===")
   io.println("")
@@ -161,14 +208,38 @@ pub fn print_performance_report() -> Nil {
   )
 }
 
+/// An optimized string builder that uses string trees for efficient concatenation.
+/// 
+/// This type wraps Gleam's `StringTree` to provide an efficient way to build
+/// strings through multiple append operations without quadratic time complexity.
 pub type OptimizedStringBuilder {
   OptimizedStringBuilder(tree: string_tree.StringTree)
 }
 
+/// Creates a new empty string builder.
+/// 
+/// ## Examples
+/// 
+/// ```gleam
+/// let builder = new_string_builder()
+/// ```
 pub fn new_string_builder() -> OptimizedStringBuilder {
   OptimizedStringBuilder(tree: string_tree.new())
 }
 
+/// Appends text to the string builder.
+/// 
+/// This operation is efficient and doesn't require copying the entire
+/// string like regular string concatenation would.
+/// 
+/// ## Examples
+/// 
+/// ```gleam
+/// new_string_builder()
+/// |> append_to_builder("hello")
+/// |> append_to_builder(" ")
+/// |> append_to_builder("world")
+/// ```
 pub fn append_to_builder(
   builder: OptimizedStringBuilder,
   text: String,
@@ -176,6 +247,20 @@ pub fn append_to_builder(
   OptimizedStringBuilder(tree: string_tree.append(builder.tree, text))
 }
 
+/// Converts the string builder to a final string.
+/// 
+/// This operation finalizes the string building process and returns
+/// the concatenated result as a regular string.
+/// 
+/// ## Examples
+/// 
+/// ```gleam
+/// new_string_builder()
+/// |> append_to_builder("hello")
+/// |> append_to_builder(" world")
+/// |> builder_to_string()
+/// // -> "hello world"
+/// ```
 pub fn builder_to_string(builder: OptimizedStringBuilder) -> String {
   string_tree.to_string(builder.tree)
 }

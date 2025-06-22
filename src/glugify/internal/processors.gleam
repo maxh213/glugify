@@ -32,7 +32,10 @@ fn normalize_whitespace_graphemes(
 }
 
 fn is_whitespace(char: String) -> Bool {
-  char == " " || char == "\t" || char == "\n" || char == "\r"
+  case char {
+    " " | "\t" | "\n" | "\r" -> True
+    _ -> False
+  }
 }
 
 pub fn apply_separators(
@@ -361,17 +364,51 @@ fn truncate_at_word_boundary(
   let truncated = string.slice(text, 0, max_length)
   case string.last(truncated) {
     Ok(last_char) -> {
-      case last_char == "-" || last_char == "_" {
-        True -> Ok(string.drop_end(truncated, 1))
-        False -> {
-          case string.split_once(truncated, "-") {
-            Ok(#(before, _)) -> Ok(before)
+      case last_char {
+        "-" | "_" -> Ok(string.drop_end(truncated, 1))
+        _ -> {
+          case find_last_separator(truncated, "-") {
+            Ok(index) -> Ok(string.slice(truncated, 0, index))
             Error(_) -> Ok(truncated)
           }
         }
       }
     }
     Error(_) -> Ok(truncated)
+  }
+}
+
+fn find_last_separator(text: String, separator: String) -> Result(Int, Nil) {
+  let graphemes = string.to_graphemes(text)
+  find_last_separator_helper(graphemes, separator, 0, Error(Nil))
+}
+
+fn find_last_separator_helper(
+  graphemes: List(String),
+  separator: String,
+  current_index: Int,
+  last_found: Result(Int, Nil),
+) -> Result(Int, Nil) {
+  case graphemes {
+    [] -> last_found
+    [char, ..rest] -> {
+      case char == separator {
+        True ->
+          find_last_separator_helper(
+            rest,
+            separator,
+            current_index + 1,
+            Ok(current_index),
+          )
+        False ->
+          find_last_separator_helper(
+            rest,
+            separator,
+            current_index + 1,
+            last_found,
+          )
+      }
+    }
   }
 }
 
