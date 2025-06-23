@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.1] - 2025-06-23
+
+### Changed
+- Moved benchmarking code from `src/dev/` to project root `dev/` directory to completely exclude it from the main package structure
+- Benchmarking tools are now located outside the `src/` directory at the project root level alongside `src/` and `test/`
+- Updated import statements in benchmarking files to properly reference the performance module in the new location
+
+### Technical Notes
+- Dev tools remain fully functional but are now completely separate from the publishable package
+- Directory structure now: `dev/` (benchmarking), `src/` (main library), `test/` (tests)
+- No changes to public API or library functionality
+
 ## [2.0.0] - 2025-06-23
 
 ### Changed

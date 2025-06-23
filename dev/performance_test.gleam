@@ -5,8 +5,8 @@ import glugify
 import glugify/config
 import glugify/internal/optimized_processors
 
-// Import from dev directory
-import dev/performance
+// Import performance module
+import performance
 
 pub fn main() {
   gleeunit.main()

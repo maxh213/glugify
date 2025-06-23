@@ -1,9 +1,9 @@
-import dev/performance
 import gleam/string
 import gleeunit
 import gleeunit/should
 import glugify
 import glugify/config
+import performance
 
 pub fn main() {
   gleeunit.main()
