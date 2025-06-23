@@ -141,8 +141,6 @@ case glugify.try_slugify("") {
 
 ## Performance
 
-Glugify is designed for high performance with comprehensive benchmarks covering various input types:
-
 ### Benchmark Results
 
 #### Erlang Target
@@ -184,7 +182,7 @@ Glugify is designed for high performance with comprehensive benchmarks covering 
 - **String length scaling**: Performance decreases predictably with input length on both targets
 - **Memory efficiency**: Uses string trees for optimal memory allocation patterns
 
-**Key Observations:**
+**Things of note:**
 - JavaScript target excels at simple text processing (2,700+ ops/sec vs 4-21 ops/sec)
 - Both targets show similar relative performance patterns across different input types
 - Long text processing is the primary bottleneck on both platforms
