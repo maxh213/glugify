@@ -141,54 +141,55 @@ case glugify.try_slugify("") {
 
 ## Performance
 
-### Benchmark Results
+### Benchmark Results (using gleamy_bench)
 
 #### Erlang Target
 
-| Test Case | Operations/sec | Avg Time per Operation |
-|-----------|----------------|------------------------|
-| Simple text ("Hello World") | 4 ops/sec | 202ms |
-| Unicode text with emojis | 12 ops/sec | 83ms |
-| Long text (200+ chars) | 1 ops/sec | 619ms |
-| Complex text (mixed case, symbols) | 2 ops/sec | 336ms |
-| Configured simple text | 21 ops/sec | 47ms |
-| Configured unicode text | 11 ops/sec | 84ms |
-| Configured long text | 1 ops/sec | 629ms |
-| Configured complex text | 2 ops/sec | 350ms |
+| Test Case | Function | IPS (ops/sec) | Min Time (ms) | P99 Time (ms) |
+|-----------|----------|---------------|---------------|---------------|
+| Simple text ("Hello World") | slugify | 20,412 | 0.046 | 0.061 |
+| Simple text ("Hello World") | slugify_with_custom_config | 20,646 | 0.046 | 0.060 |
+| Unicode text with emojis | slugify | 11,903 | 0.081 | 0.098 |
+| Unicode text with emojis | slugify_with_custom_config | 12,064 | 0.081 | 0.095 |
+| Long text (200+ chars) | slugify | 1,545 | 0.606 | 1.090 |
+| Long text (200+ chars) | slugify_with_custom_config | 1,571 | 0.607 | 0.709 |
+| Complex text (mixed case, symbols) | slugify | 2,897 | 0.327 | 0.381 |
+| Complex text (mixed case, symbols) | slugify_with_custom_config | 2,933 | 0.329 | 0.373 |
 
-**Erlang Summary:** 800 total operations executed with an average of 6 operations per second.
+**Erlang Summary:** Average of ~9,750 operations per second across all test cases.
 
 #### JavaScript Target
 
-| Test Case | Operations/sec | Avg Time per Operation |
-|-----------|----------------|------------------------|
-| Simple text ("Hello World") | 2,702 ops/sec | 0.38ms |
-| Unicode text with emojis | 3,030 ops/sec | 0.33ms |
-| Long text (200+ chars) | 347 ops/sec | 2.88ms |
-| Complex text (mixed case, symbols) | 613 ops/sec | 1.64ms |
-| Configured simple text | 4,761 ops/sec | 0.21ms |
-| Configured unicode text | 3,846 ops/sec | 0.27ms |
-| Configured long text | 342 ops/sec | 2.92ms |
-| Configured complex text | 602 ops/sec | 1.66ms |
+| Test Case | Function | IPS (ops/sec) | Min Time (ms) | P99 Time (ms) |
+|-----------|----------|---------------|---------------|---------------|
+| Simple text ("Hello World") | slugify | 5,925 | 0.129 | 0.570 |
+| Simple text ("Hello World") | slugify_with_custom_config | 5,681 | 0.133 | 0.655 |
+| Unicode text with emojis | slugify | 3,992 | 0.199 | 0.700 |
+| Unicode text with emojis | slugify_with_custom_config | 4,021 | 0.202 | 0.729 |
+| Long text (200+ chars) | slugify | 385 | 2.083 | 3.227 |
+| Long text (200+ chars) | slugify_with_custom_config | 369 | 2.185 | 3.471 |
+| Complex text (mixed case, symbols) | slugify | 654 | 1.195 | 2.635 |
+| Complex text (mixed case, symbols) | slugify_with_custom_config | 635 | 1.264 | 2.489 |
 
-**JavaScript Summary:** 800 total operations executed with an average of 2,030 operations per second.
+**JavaScript Summary:** Average of ~2,670 operations per second across all test cases.
 
 ### Performance Characteristics
 
-- **Target Performance**: JavaScript target significantly outperforms Erlang (300-700x faster for simple operations)
-- **Simple strings**: Optimized for common use cases with minimal processing overhead
-- **Unicode handling**: Efficient transliteration with character mapping tables on both targets
-- **Configuration impact**: Minimal performance penalty when using custom configurations
+- **Target Performance**: Erlang target significantly outperforms JavaScript (3-4x faster for most operations)
+- **Simple strings**: Excellent performance for common use cases (20K+ ops/sec on Erlang, 6K+ ops/sec on JavaScript)
+- **Unicode handling**: Efficient transliteration with minimal performance impact on both targets
+- **Configuration impact**: Custom configurations show comparable or slightly better performance
 - **String length scaling**: Performance decreases predictably with input length on both targets
-- **Memory efficiency**: Uses string trees for optimal memory allocation patterns
+- **Memory efficiency**: Uses gleamy_bench for accurate performance measurement with proper statistical analysis
 
-**Things of note:**
-- JavaScript target excels at simple text processing (2,700+ ops/sec vs 4-21 ops/sec)
-- Both targets show similar relative performance patterns across different input types
-- Long text processing is the primary bottleneck on both platforms
-- Custom configuration actually improves performance on JavaScript target
+**Key Insights:**
+- Erlang target shows superior performance for text processing operations
+- Both targets maintain consistent relative performance patterns across different input types
+- Long text processing (200+ characters) is the primary performance bottleneck
+- Custom configuration adds minimal overhead and sometimes improves performance
+- P99 latency remains low for simple operations (sub-millisecond on Erlang)
 
-The benchmarks were run with 100 iterations per test case on both Erlang and JavaScript targets. Performance may vary depending on your specific use case and runtime environment.
+The benchmarks were run using gleamy_bench with 1000ms duration per test and 100ms warmup. Performance includes proper statistical analysis with IPS (iterations per second), minimum time, and 99th percentile measurements. Results may vary depending on your specific use case and runtime environment.
 
 ## Installation
 

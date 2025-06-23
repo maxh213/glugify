@@ -8,6 +8,12 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 ## v1.0.13
 - [x] double check the readme section using wordboundaries matches the reality of the tests and code
 
+## v1.0.14
+- [x] Update the benchmarking code so that it runs using gleamy_bench
+
+## {Version after Next Version}
+- [ ] Benchmarking code shouldn't be apart of the public API / Package, move it under /dev so it isn't included when gleam/publish is run
+
 ## Development Guidelines
 
 Each task should be completed following these principles:

@@ -2,121 +2,11 @@ import gleam/int
 import gleam/io
 import gleam/list
 import gleam/string_tree
+import gleamy/bench
 import glugify
 import glugify/config
 
-/// Represents the results of a performance benchmark.
-/// 
-/// Contains timing information and operation counts for analyzing
-/// the performance characteristics of slugification operations.
-pub type BenchmarkResult {
-  BenchmarkResult(
-    name: String,
-    operations: Int,
-    total_time_ms: Int,
-    ops_per_second: Int,
-    avg_time_per_op_microseconds: Int,
-  )
-}
-
-/// Benchmarks the simple `slugify` function with a given input.
-/// 
-/// Runs the slugification operation for the specified number of iterations
-/// and measures the total time, average time per operation, and operations per second.
-/// 
-/// ## Examples
-/// 
-/// ```gleam
-/// let result = benchmark_slugify("Hello World", 1000)
-/// // Measures performance of 1000 slugify operations
-/// ```
-pub fn benchmark_slugify(input: String, iterations: Int) -> BenchmarkResult {
-  let start_time = get_time_microseconds()
-
-  benchmark_slugify_loop(input, iterations, 0)
-
-  let end_time = get_time_microseconds()
-  let total_time_microseconds = end_time - start_time
-  let total_time_ms = total_time_microseconds / 1000
-  let avg_time_per_op = total_time_microseconds / iterations
-  let ops_per_second = case total_time_ms {
-    0 -> iterations * 1000
-    _ -> { iterations * 1000 } / total_time_ms
-  }
-
-  BenchmarkResult(
-    name: "slugify",
-    operations: iterations,
-    total_time_ms: total_time_ms,
-    ops_per_second: ops_per_second,
-    avg_time_per_op_microseconds: avg_time_per_op,
-  )
-}
-
-fn benchmark_slugify_loop(input: String, remaining: Int, _acc: Int) -> Nil {
-  case remaining {
-    0 -> Nil
-    _ -> {
-      let _ = glugify.slugify(input)
-      benchmark_slugify_loop(input, remaining - 1, 0)
-    }
-  }
-}
-
-/// Benchmarks the `slugify_with` function with custom configuration.
-/// 
-/// Runs the slugification operation with the provided configuration
-/// for the specified number of iterations and measures performance.
-/// 
-/// ## Examples
-/// 
-/// ```gleam
-/// let custom_config = config.default() |> config.with_separator("_")
-/// let result = benchmark_slugify_with_config("Hello World", custom_config, 1000)
-/// ```
-pub fn benchmark_slugify_with_config(
-  input: String,
-  config: config.Config,
-  iterations: Int,
-) -> BenchmarkResult {
-  let start_time = get_time_microseconds()
-
-  benchmark_slugify_with_config_loop(input, config, iterations, 0)
-
-  let end_time = get_time_microseconds()
-  let total_time_microseconds = end_time - start_time
-  let total_time_ms = total_time_microseconds / 1000
-  let avg_time_per_op = total_time_microseconds / iterations
-  let ops_per_second = case total_time_ms {
-    0 -> iterations * 1000
-    _ -> { iterations * 1000 } / total_time_ms
-  }
-
-  BenchmarkResult(
-    name: "slugify_with_config",
-    operations: iterations,
-    total_time_ms: total_time_ms,
-    ops_per_second: ops_per_second,
-    avg_time_per_op_microseconds: avg_time_per_op,
-  )
-}
-
-fn benchmark_slugify_with_config_loop(
-  input: String,
-  config: config.Config,
-  remaining: Int,
-  _acc: Int,
-) -> Nil {
-  case remaining {
-    0 -> Nil
-    _ -> {
-      let _ = glugify.slugify_with(input, config)
-      benchmark_slugify_with_config_loop(input, config, remaining - 1, 0)
-    }
-  }
-}
-
-/// Runs a comprehensive performance benchmark suite.
+/// Runs a comprehensive performance benchmark suite using gleamy_bench.
 /// 
 /// Tests various input types and configurations:
 /// - Simple text
@@ -125,8 +15,9 @@ fn benchmark_slugify_with_config_loop(
 /// - Complex text with mixed case and symbols
 /// - Both default and custom configurations
 /// 
-/// Returns a list of benchmark results for analysis.
-pub fn run_performance_suite() -> List(BenchmarkResult) {
+/// Uses gleamy_bench to provide accurate performance measurements
+/// with proper warmup periods and statistical analysis.
+pub fn run_performance_suite() -> String {
   let simple_text = "Hello World"
   let unicode_text = "Héllo Wörld with émojis 🎉"
   let long_text =
@@ -140,78 +31,138 @@ pub fn run_performance_suite() -> List(BenchmarkResult) {
     |> config.with_max_length(20)
     |> config.with_word_boundary(True)
 
-  let iterations = 100
+  let benchmark_results =
+    bench.run(
+      [
+        bench.Input("simple_text", simple_text),
+        bench.Input("unicode_text", unicode_text),
+        bench.Input("long_text", long_text),
+        bench.Input("complex_text", complex_text),
+      ],
+      [
+        bench.Function("slugify", fn(text) { glugify.slugify(text) }),
+        bench.Function("slugify_with_custom_config", fn(text) {
+          case glugify.slugify_with(text, custom_config) {
+            Ok(slug) -> slug
+            Error(_) -> ""
+          }
+        }),
+      ],
+      [bench.Duration(100), bench.Warmup(10)],
+    )
 
-  [
-    benchmark_slugify(simple_text, iterations),
-    benchmark_slugify(unicode_text, iterations),
-    benchmark_slugify(long_text, iterations),
-    benchmark_slugify(complex_text, iterations),
-    benchmark_slugify_with_config(simple_text, custom_config, iterations),
-    benchmark_slugify_with_config(unicode_text, custom_config, iterations),
-    benchmark_slugify_with_config(long_text, custom_config, iterations),
-    benchmark_slugify_with_config(complex_text, custom_config, iterations),
-  ]
+  benchmark_results
+  |> bench.table([bench.IPS, bench.Min, bench.P(99)])
 }
 
-/// Prints a formatted benchmark result to the console.
+/// Prints a complete performance report to the console.
 /// 
-/// Outputs operation count, total time, operations per second,
-/// and average time per operation in a readable format.
-pub fn print_benchmark_result(result: BenchmarkResult) -> Nil {
-  io.println(
-    "Benchmark: "
-    <> result.name
-    <> " | Operations: "
-    <> int.to_string(result.operations)
-    <> " | Total Time: "
-    <> int.to_string(result.total_time_ms)
-    <> "ms"
-    <> " | Ops/sec: "
-    <> int.to_string(result.ops_per_second)
-    <> " | Avg: "
-    <> int.to_string(result.avg_time_per_op_microseconds)
-    <> "μs",
-  )
-}
-
-/// Runs the complete performance suite and prints a formatted report.
+/// This function executes all benchmarks using gleamy_bench and displays:
+/// - Detailed benchmark results with statistical analysis
+/// - Operations per second (IPS) for each test case
+/// - Minimum execution times
+/// - 99th percentile performance metrics
 /// 
-/// This function executes all benchmarks and displays:
-/// - Individual benchmark results
-/// - Summary statistics
-/// - Total operations executed
-/// - Average operations per second across all tests
+/// The benchmarks compare the simple `slugify` function against
+/// `slugify_with` using custom configurations across various input types.
 pub fn print_performance_report() -> Nil {
-  io.println("=== Glugify Performance Benchmark Report ===")
+  io.println(
+    "=== Glugify Performance Benchmark Report (using gleamy_bench) ===",
+  )
   io.println("")
 
   let results = run_performance_suite()
-  list.each(results, print_benchmark_result)
+  io.println(results)
 
   io.println("")
-  io.println("=== Performance Summary ===")
-  let total_ops =
-    list.fold(results, 0, fn(acc, result) { acc + result.operations })
-  let avg_ops_per_second = case list.length(results) {
-    0 -> 0
-    len -> {
-      let total_ops_per_second =
-        list.fold(results, 0, fn(acc, result) { acc + result.ops_per_second })
-      total_ops_per_second / len
-    }
-  }
-
-  io.println("Total operations executed: " <> int.to_string(total_ops))
+  io.println("=== Benchmark Details ===")
+  io.println("Duration: 100ms per test")
+  io.println("Warmup: 10ms per test")
   io.println(
-    "Average operations per second: " <> int.to_string(avg_ops_per_second),
+    "Statistics: IPS (iterations per second), Min (minimum time), P99 (99th percentile)",
   )
+}
+
+/// Benchmarks a specific function with custom inputs using gleamy_bench.
+/// 
+/// This function provides a flexible way to benchmark any slugification
+/// function with custom test inputs and configurations.
+/// 
+/// ## Examples
+/// 
+/// ```gleam
+/// let custom_inputs = ["Hello World", "Test Input", "Spéciàl Chãractërs"]
+/// let results = benchmark_function_with_inputs(
+///   custom_inputs, 
+///   fn(text) { glugify.slugify(text) },
+///   "custom_slugify_test"
+/// )
+/// ```
+pub fn benchmark_function_with_inputs(
+  inputs: List(String),
+  function: fn(String) -> String,
+  function_name: String,
+) -> String {
+  let benchmark_inputs =
+    list.index_map(inputs, fn(input, index) {
+      bench.Input("input_" <> int.to_string(index), input)
+    })
+
+  bench.run(benchmark_inputs, [bench.Function(function_name, function)], [
+    bench.Duration(100),
+    bench.Warmup(10),
+  ])
+  |> bench.table([bench.IPS, bench.Min, bench.P(99)])
+}
+
+/// Benchmarks multiple slugification functions against the same inputs.
+/// 
+/// Useful for comparing the performance of different configurations
+/// or different versions of slugification functions.
+/// 
+/// ## Examples
+/// 
+/// ```gleam
+/// let test_inputs = ["Hello World", "Test Input"]
+/// let functions = [
+///   #("simple_slugify", fn(text) { glugify.slugify(text) }),
+///   #("try_slugify", fn(text) { 
+///     case glugify.try_slugify(text) {
+///       Ok(slug) -> slug
+///       Error(_) -> ""
+///     }
+///   })
+/// ]
+/// let results = benchmark_multiple_functions(test_inputs, functions)
+/// ```
+pub fn benchmark_multiple_functions(
+  inputs: List(String),
+  functions: List(#(String, fn(String) -> String)),
+) -> String {
+  let benchmark_inputs =
+    list.index_map(inputs, fn(input, index) {
+      bench.Input("input_" <> int.to_string(index), input)
+    })
+
+  let benchmark_functions =
+    list.map(functions, fn(func_pair) {
+      let #(name, func) = func_pair
+      bench.Function(name, func)
+    })
+
+  bench.run(benchmark_inputs, benchmark_functions, [
+    bench.Duration(100),
+    bench.Warmup(10),
+  ])
+  |> bench.table([bench.IPS, bench.Min, bench.P(99)])
 }
 
 /// An optimized string builder that uses string trees for efficient concatenation.
 /// 
 /// This type wraps Gleam's `StringTree` to provide an efficient way to build
 /// strings through multiple append operations without quadratic time complexity.
+/// 
+/// Note: This is kept for backward compatibility with the existing API.
 pub type OptimizedStringBuilder {
   OptimizedStringBuilder(tree: string_tree.StringTree)
 }
@@ -264,7 +215,3 @@ pub fn append_to_builder(
 pub fn builder_to_string(builder: OptimizedStringBuilder) -> String {
   string_tree.to_string(builder.tree)
 }
-
-@external(erlang, "erlang", "system_time")
-@external(javascript, "./glugify_ffi.mjs", "get_time_microseconds")
-fn get_time_microseconds() -> Int

@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.14] - 2025-06-23
+
+### Changed
+- **BREAKING CHANGE**: Updated benchmarking implementation to use `gleamy_bench` instead of custom benchmarking code
+- Replaced custom `BenchmarkResult` type and timing functions with gleamy_bench's professional benchmarking suite
+- Performance functions now return formatted benchmark result strings instead of custom result objects
+- Benchmark duration reduced to 100ms for tests (1000ms for production benchmarks) to prevent timeouts
+- Updated README.md performance section with new benchmark results using gleamy_bench
+
+### Added
+- Added `gleamy_bench` as dev dependency for professional-grade performance benchmarking
+- Added new benchmark functions: `benchmark_function_with_inputs` and `benchmark_multiple_functions`
+- Enhanced performance testing with proper statistical analysis (IPS, Min time, P99 percentile)
+- Added comprehensive benchmark examples in `benchmark_runner.gleam`
+
+### Improved
+- More accurate and statistically sound performance measurements
+- Better benchmark result formatting with professional-grade statistics
+- Enhanced test coverage for new benchmarking implementation
+- Updated performance documentation with gleamy_bench methodology
+
+### Technical Notes
+- The library now uses industry-standard benchmarking practices via gleamy_bench
+- All previous performance measurement functions maintain backward compatibility for string builder utilities
+- Benchmark results now include proper warmup periods and statistical analysis
+
 ## [1.0.13] - 2025-06-23
 
 ### Fixed
