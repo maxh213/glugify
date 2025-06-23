@@ -5,6 +5,9 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 ## v1.0.12
 - [x] update the error handling readme section to reflect the reality of the code
 
+## v1.0.13
+- [x] double check the readme section using wordboundaries matches the reality of the tests and code
+
 ## Development Guidelines
 
 Each task should be completed following these principles:

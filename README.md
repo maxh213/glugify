@@ -63,7 +63,7 @@ let custom_config = config.default()
   |> config.with_word_boundary(True)
 
 glugify.slugify_with("A Very Long Title That Needs Truncation", custom_config)
-// -> Ok("a_very_long_title_th")
+// -> Ok("a_very_long_title")
 ```
 
 ## Configuration Options
