@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-06-23
+
+### Changed
+- **BREAKING CHANGE**: Moved all benchmarking code from public API to `/dev` directory structure to exclude from published package
+- Performance benchmarking tools are now located under `src/dev/` and are not part of the public API
+- Benchmarking code is now only available for development and testing, not for end users of the library
+
+### Added
+- Created standalone benchmark runner at `src/dev/benchmark_runner.gleam` for development use
+- Added comprehensive benchmark integration tests in `src/dev/benchmark_integration_test.gleam`
+- Added development README at `src/dev/README.md` with documentation for benchmarking tools
+- Enhanced dev tooling with detailed examples and usage instructions
+
+### Removed
+- Removed `src/glugify/performance.gleam` from public API
+- Removed `test/performance_test.gleam` from main test suite (moved to dev directory)
+- Benchmarking functions are no longer exported as part of the library's public interface
+
+### Technical Notes
+- Package size reduced by excluding development-only benchmarking code
+- Cleaner public API focused solely on slugification functionality
+- Development tools remain fully functional and well-tested within the dev directory
+- Use `gleam run -m dev/benchmark_runner` to execute performance benchmarks during development
+
 ## [1.0.14] - 2025-06-23
 
 ### Changed

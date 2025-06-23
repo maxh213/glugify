@@ -4,7 +4,9 @@ import gleeunit/should
 import glugify
 import glugify/config
 import glugify/internal/optimized_processors
-import glugify/performance
+
+// Import from dev directory
+import dev/performance
 
 pub fn main() {
   gleeunit.main()
@@ -197,6 +199,6 @@ pub fn benchmark_different_config_functions_test() {
 
   let result = performance.benchmark_multiple_functions(test_inputs, functions)
 
-  // The result should be a non-empty string containing benchmark data
+  // The result should be a non-empty string containing bookmark data
   should.be_true(string.length(result) > 0)
 }

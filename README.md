@@ -182,7 +182,7 @@ case glugify.try_slugify("") {
 - **String length scaling**: Performance decreases predictably with input length on both targets
 - **Memory efficiency**: Uses gleamy_bench for accurate performance measurement with proper statistical analysis
 
-**Key Insights:**
+**Stuff of note:**
 - Erlang target shows superior performance for text processing operations
 - Both targets maintain consistent relative performance patterns across different input types
 - Long text processing (200+ characters) is the primary performance bottleneck
