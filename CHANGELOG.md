@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.3] - 2026-06-11
+
+### Changed
+- Updated dependencies and verified compatibility with gleam_stdlib 1.x (gleam_stdlib 0.60.0 -> 1.0.3 in the lockfile; published constraint `>= 0.44.0 and < 2.0.0` is unchanged)
+- Updated dev dependencies: gleeunit 1.5.1 -> 1.11.0, qcheck 1.0.0 -> 1.0.4, prng 4.0.1 -> 5.1.0; removed transitive gleam_bitwise
+
+### Technical Notes
+- No public API changes
+- All 164 tests pass on both Erlang and JavaScript targets
+
 ## [2.0.2] - 2026-06-07
 
 ### Changed
