@@ -11,7 +11,7 @@ gleam add glugify
 
 ## Try it live
 
-An interactive playground — powered by this exact library compiled to JavaScript — lives in [`docs/`](docs/). Open `docs/index.html` in a browser (or enable GitHub Pages on the `docs/` folder) to experiment with the core configuration options and copy the generated Gleam code. Rebuild the bundle after source changes with `./docs/build-playground.sh`.
+An interactive playground — powered by this exact library compiled to JavaScript — lives in [`docs/`](docs/). Open `docs/index.html` in a browser (or visit [here](https://maxh213.github.io/glugify/)) to experiment with the core configuration options and copy the generated Gleam code. Rebuild the bundle after source changes with `./docs/build-playground.sh`.
 
 ## Quick Start
 
