@@ -16,7 +16,7 @@ import glugify/locale.{type Locale}
 /// - `preserve_leading_underscore`: Whether to keep leading underscores (default: `False`)
 /// - `preserve_trailing_dash`: Whether to keep trailing dashes (default: `False`)
 /// - `stop_words`: List of words to remove (default: `[]`)
-/// - `trim`: Whether to trim whitespace (default: `True`)
+/// - `trim`: Whether to trim leading/trailing separators from the slug (default: `True`)
 /// - `locale`: Locale for language-specific transliteration (default: `locale.Default`)
 /// - `decamelize`: Whether to split camelCase words (default: `False`)
 /// - `decode_html_entities`: Whether to decode HTML entities first (default: `False`)
@@ -337,6 +337,10 @@ pub fn with_decode_html_entities(
 /// from transliteration, are not converted to separators, and survive
 /// invalid-character removal.
 ///
+/// Each entry must be a single grapheme — multi-character entries never
+/// match. When `lowercase` is enabled (the default), an ignored grapheme
+/// is still lowercased: `ignore: ["Ü"]` keeps "Ü" in the slug as "ü".
+///
 /// ## Examples
 ///
 /// ```gleam
@@ -352,16 +356,16 @@ pub fn with_ignore(config: Config, ignore: List(String)) -> Config {
   Config(..config, ignore: ignore)
 }
 
-/// Sets whether to trim leading and trailing whitespace from the input.
-/// 
-/// This is applied early in the processing pipeline.
-/// 
+/// Sets whether leading and trailing separators are trimmed from the
+/// final slug. Input whitespace is always trimmed regardless of this
+/// setting.
+///
 /// ## Examples
-/// 
+///
 /// ```gleam
 /// default()
 /// |> with_trim(False)
-/// // Preserves leading/trailing spaces in processing
+/// // "hello!" -> "hello-" (the trailing separator is kept)
 /// ```
 pub fn with_trim(config: Config, trim: Bool) -> Config {
   Config(..config, trim: trim)

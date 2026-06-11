@@ -95,7 +95,18 @@ fn apply_separators_simple(
 /// unicode, or explicitly ignored by configuration.
 fn is_slug_char(char: String, config: Config) -> Bool {
   is_alphanumeric_or_unicode(char, config.allow_unicode)
-  || list.contains(config.ignore, char)
+  || is_ignored(char, config)
+}
+
+/// Ignored graphemes are matched by their lowercased form too when the
+/// config lowercases the slug, since these checks run after the lowercase
+/// stage: with `ignore: ["Ü"]` the text "Ü" has already become "ü".
+fn is_ignored(char: String, config: Config) -> Bool {
+  list.contains(config.ignore, char)
+  || {
+    config.lowercase
+    && list.any(config.ignore, fn(entry) { string.lowercase(entry) == char })
+  }
 }
 
 fn ends_with_separator(acc: List(String), separator: String) -> Bool {
@@ -514,7 +525,9 @@ pub fn filter_stop_words(
   stop_words: List(String),
   separator: String,
 ) -> Result(String, SlugifyError) {
-  case list.is_empty(stop_words) {
+  // Splitting on "" would split into graphemes and delete every letter
+  // that happens to match a stop word, so an empty separator is a no-op.
+  case list.is_empty(stop_words) || separator == "" {
     True -> Ok(text)
     False -> {
       let lowered_stop_words = list.map(stop_words, string.lowercase)

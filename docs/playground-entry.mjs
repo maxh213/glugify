@@ -16,12 +16,32 @@ import {
   with_allow_unicode,
   with_custom_replacements,
   with_stop_words,
+  with_locale,
+  with_decamelize,
+  with_decode_html_entities,
 } from "../build/dev/javascript/glugify/glugify/config.mjs";
+import {
+  Default as LocaleDefault,
+  German as LocaleGerman,
+  Danish as LocaleDanish,
+  Norwegian as LocaleNorwegian,
+  Swedish as LocaleSwedish,
+  Turkish as LocaleTurkish,
+} from "../build/dev/javascript/glugify/glugify/locale.mjs";
 import {
   EmptyInput,
   TransliterationFailed,
   ConfigurationError,
 } from "../build/dev/javascript/glugify/glugify/errors.mjs";
+
+const LOCALES = {
+  Default: () => new LocaleDefault(),
+  German: () => new LocaleGerman(),
+  Danish: () => new LocaleDanish(),
+  Norwegian: () => new LocaleNorwegian(),
+  Swedish: () => new LocaleSwedish(),
+  Turkish: () => new LocaleTurkish(),
+};
 
 function buildConfig(opts) {
   let cfg = defaultConfig();
@@ -33,6 +53,11 @@ function buildConfig(opts) {
   cfg = with_word_boundary(cfg, opts.wordBoundary);
   cfg = with_transliterate(cfg, opts.transliterate);
   cfg = with_allow_unicode(cfg, opts.allowUnicode);
+  if (opts.locale && LOCALES[opts.locale]) {
+    cfg = with_locale(cfg, LOCALES[opts.locale]());
+  }
+  cfg = with_decamelize(cfg, !!opts.decamelize);
+  cfg = with_decode_html_entities(cfg, !!opts.decodeHtmlEntities);
   if (opts.customReplacements.length > 0) {
     cfg = with_custom_replacements(
       cfg,

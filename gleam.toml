@@ -1,10 +1,12 @@
 name = "glugify"
-version = "3.0.0"
+version = "3.1.0"
+gleam = ">= 1.0.0"
 description = "A robust, type-safe slugification library for Gleam that converts text into URL-friendly slugs"
 licences = ["Apache-2.0"]
 repository = { type = "github", user = "maxh213", repo = "glugify" }
 links = [
   { title = "Documentation", href = "https://hexdocs.pm/glugify" },
+  { title = "Live Playground", href = "https://maxh213.github.io/glugify/" },
   { title = "Changelog", href = "https://github.com/maxh213/glugify/blob/main/CHANGELOG.md" }
 ]
 #

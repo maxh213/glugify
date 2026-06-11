@@ -115,14 +115,24 @@ pub fn slugify_with(
     }
     Ok(result)
   })
-  use separated <- result.try(processors.apply_separators(lowercased, config))
+  // With an empty separator the words are joined together, so stop words
+  // must be filtered while whitespace still marks the word boundaries.
+  use pre_filtered <- result.try(case config.separator {
+    "" -> processors.filter_stop_words(lowercased, config.stop_words, " ")
+    _ -> Ok(lowercased)
+  })
+  use separated <- result.try(processors.apply_separators(pre_filtered, config))
   use cleaned <- result.try(processors.remove_invalid_chars(separated, config))
   use collapsed <- result.try(processors.collapse_separators(cleaned, config))
-  use without_stop_words <- result.try(processors.filter_stop_words(
-    collapsed,
-    config.stop_words,
-    config.separator,
-  ))
+  use without_stop_words <- result.try(case config.separator {
+    "" -> Ok(collapsed)
+    _ ->
+      processors.filter_stop_words(
+        collapsed,
+        config.stop_words,
+        config.separator,
+      )
+  })
   use trimmed <- result.try(processors.trim_separators(
     without_stop_words,
     config,

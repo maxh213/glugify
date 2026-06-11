@@ -10,14 +10,18 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Oldest verified Gleam version and the current one.
+        gleam-version: ["1.14.0", "1.17.0"]
     steps:
       - uses: actions/checkout@v4
       - uses: erlef/setup-beam@v1
         with:
           otp-version: "27.1.2"
-          gleam-version: "1.17.0"
+          gleam-version: ${{ matrix.gleam-version }}
           rebar3-version: "3"
-          # elixir-version: "1"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -25,3 +29,21 @@ jobs:
       - run: gleam test
       - run: gleam test --target javascript
       - run: gleam format --check src test
+
+  # Tests against the newest allowed versions of every dependency so the
+  # published version constraints stay honest as the ecosystem moves.
+  latest-deps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: erlef/setup-beam@v1
+        with:
+          otp-version: "27.1.2"
+          gleam-version: "1.17.0"
+          rebar3-version: "3"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: gleam deps update
+      - run: gleam test
+      - run: gleam test --target javascript

@@ -34,9 +34,20 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 - [x] Elixir slugify-style `ignore` option (exempt specific graphemes from transliteration and removal)
 - [x] Arabic/Persian and Hebrew transliteration tables (basic consonantal romanization)
 
+## v3.1.0
+- [x] Fix stop words destroying content when separator is "" (grapheme-split bug)
+- [x] Fix uppercase non-ASCII `ignore` graphemes being stripped by the lowercase pass
+- [x] Remove dead code from the published package (optimized_processors, glugify_ffi.mjs)
+- [x] Correct `with_trim` and `with_ignore` documentation
+- [x] Add `gleam = ">= 1.0.0"` constraint to gleam.toml
+- [x] github-slugger-compatible anchor mode (`glugify/anchor`), fixture-validated on both targets
+- [x] Fix playground switches not toggling on click; add locale/decamelize/HTML-entity controls
+- [x] Publish playground via GitHub Pages (main:/docs) and link it from README + Hex
+- [x] Code-generate transliteration tables from dev/char_data/*.tsv (groundwork for CJK)
+- [x] CI: Gleam version matrix (1.14.0, 1.17.0) + latest-deps job
+
 ## Roadmap candidates (from market research, June 2026)
 - [ ] CJK transliteration tables (Chinese -> pinyin), possibly code-generated like the deunicode/unidecode tables
-- [ ] github-slugger-compatible anchor mode for markdown/SSG tooling (needs spec-exact compatibility against github-slugger's test suite)
 - [ ] Consider making Config opaque (with field accessors) so future options stop being major version bumps
 
 ## Development Guidelines

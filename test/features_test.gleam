@@ -217,3 +217,47 @@ pub fn ascii_apostrophe_joins_test() {
   glugify.slugify("don't stop")
   |> should.equal("dont-stop")
 }
+
+// REGRESSIONS (3.0.1)
+
+pub fn ignore_uppercase_grapheme_survives_lowercasing_test() {
+  // The ignored grapheme is checked again after the lowercase stage;
+  // "Ü" becomes "ü" and must still be kept (previously it was stripped).
+  let cfg = config.default() |> config.with_ignore(["Ü"])
+  glugify.slugify_with("Ü test", cfg)
+  |> should.equal(Ok("ü-test"))
+}
+
+pub fn ignore_uppercase_grapheme_without_lowercasing_test() {
+  let cfg =
+    config.default()
+    |> config.with_ignore(["Ü"])
+    |> config.with_lowercase(False)
+  glugify.slugify_with("Ü test", cfg)
+  |> should.equal(Ok("Ü-test"))
+}
+
+pub fn ignore_lowercase_entry_does_not_match_uppercase_test() {
+  // Only the lowercased form of an entry is matched, not the reverse:
+  // ignoring "ü" says nothing about "Ü", which transliterates to "U".
+  let cfg = config.default() |> config.with_ignore(["ü"])
+  glugify.slugify_with("Ü and ü", cfg)
+  |> should.equal(Ok("u-and-ü"))
+}
+
+pub fn empty_separator_stop_words_filter_whole_words_test() {
+  // Previously the text was split into graphemes, deleting every letter
+  // that matched a stop word: "banana the test" became "bnnthetest".
+  let cfg =
+    config.default()
+    |> config.with_separator("")
+    |> config.with_stop_words(["a", "the"])
+  glugify.slugify_with("banana the test", cfg)
+  |> should.equal(Ok("bananatest"))
+}
+
+pub fn empty_separator_without_stop_words_test() {
+  let cfg = config.default() |> config.with_separator("")
+  glugify.slugify_with("hello world", cfg)
+  |> should.equal(Ok("helloworld"))
+}

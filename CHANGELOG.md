@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-06-11
+
+### Added
+- `glugify/anchor`: GitHub-compatible heading anchors implementing the exact github-slugger algorithm — `anchor.to_anchor("Hello, _World_!")` -> `"hello-_world_"`, with an `Anchorer` for github-slugger's duplicate counting (`intro`, `intro-1`, ...) and `maintaining_case` variants. Validated against the github-slugger test fixtures on both targets (the only omitted fixture depends on which Unicode version the regex engine ships). Implemented with per-target FFI (`re` with Unicode properties on Erlang, Unicode property escapes in JavaScript)
+- The [live playground](https://maxh213.github.io/glugify/) is now published via GitHub Pages and linked from the Hex package page; it gained controls for locale, decamelize and HTML entity decoding
+
+### Fixed
+- **Playground toggles now work with the mouse**: the switch track painted over the invisible checkbox and swallowed clicks, so the boolean options could only be toggled via keyboard. The switches are now proper labels and the decorative layers pass clicks through
+- **Stop words with an empty separator no longer destroy content**: with `with_separator("")` and stop words configured, the slug was split into single graphemes and every letter matching a stop word was deleted (`"banana the test"` with stop words `["a", "the"]` became `"bnnthetest"`). Stop words are now filtered while whitespace still marks the word boundaries, so the same input correctly yields `"bananatest"`
+- **Uppercase non-ASCII `ignore` graphemes survive lowercasing**: `with_ignore(["Ü"])` kept "Ü" through transliteration but the default lowercase pass turned it into "ü", which then failed the ignore check and was stripped from the slug entirely. Ignored graphemes are now also matched by their lowercased form when `lowercase` is enabled (`"Ü test"` -> `"ü-test"`)
+
+### Changed
+- Removed dead code from the published package: `internal/optimized_processors.gleam` (an unused alternative implementation of the processing pipeline) and `glugify_ffi.mjs` (an unused JavaScript FFI timing helper). Neither was reachable from the public API
+- Corrected the `with_trim` documentation: it controls trimming of leading/trailing *separators* on the final slug; input whitespace is always trimmed
+- Documented that `ignore` entries must be single graphemes and how they interact with `lowercase`
+- Added `gleam = ">= 1.0.0"` to `gleam.toml`
+
+### Technical Notes
+- The transliteration tables in `internal/char_maps.gleam` are now code-generated from TSV data files (`dev/char_data/`) via `dev/tools/generate_char_maps.py`, in preparation for much larger tables (CJK pinyin). The generated output is unchanged
+- CI now tests a Gleam version matrix (1.14.0 and 1.17.0, both verified) and runs an extra job against the newest allowed versions of all dependencies
+
 ## [3.0.0] - 2026-06-11
 
 ### Breaking

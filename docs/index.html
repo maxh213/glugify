@@ -262,15 +262,19 @@
   .row .hint { display: block; font-size: 12px; color: var(--text-dim); font-weight: 400; margin-top: 2px; }
 
   /* switch */
-  .switch { position: relative; width: 42px; height: 24px; flex: none; }
+  .switch { position: relative; width: 42px; height: 24px; flex: none; cursor: pointer; }
   .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+  /* the track and thumb paint above the invisible checkbox, so they must
+     let clicks fall through to it */
   .switch .track {
     position: absolute; inset: 0; border-radius: 99px;
+    pointer-events: none;
     background: var(--surface-strong); border: 1px solid var(--border);
     transition: background .25s, border-color .25s;
   }
   .switch .thumb {
     position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+    pointer-events: none;
     background: var(--text-dim);
     transition: transform .3s var(--ease-spring), background .25s;
   }
@@ -352,7 +356,7 @@
   <header>
     <div class="brand">
       <span class="name">glugify</span>
-      <span class="ver">v3.0.0</span>
+      <span class="ver">v3.1.0</span>
     </div>
     <nav class="header-links">
       <a href="https://hexdocs.pm/glugify/" target="_blank" rel="noopener">Docs</a>
@@ -408,7 +412,7 @@
 
         <div class="row">
           <span class="lbl">Lowercase</span>
-          <span class="switch"><input type="checkbox" id="lowercase" checked><span class="track"></span><span class="thumb"></span></span>
+          <label class="switch"><input type="checkbox" id="lowercase" checked><span class="track"></span><span class="thumb"></span></label>
         </div>
 
         <div class="row">
@@ -418,17 +422,39 @@
 
         <div class="row">
           <span class="lbl">Word boundary<span class="hint">never cut words when truncating</span></span>
-          <span class="switch"><input type="checkbox" id="word-boundary"><span class="track"></span><span class="thumb"></span></span>
+          <label class="switch"><input type="checkbox" id="word-boundary"><span class="track"></span><span class="thumb"></span></label>
         </div>
 
         <div class="row">
           <span class="lbl">Transliterate<span class="hint">café → cafe</span></span>
-          <span class="switch"><input type="checkbox" id="transliterate" checked><span class="track"></span><span class="thumb"></span></span>
+          <label class="switch"><input type="checkbox" id="transliterate" checked><span class="track"></span><span class="thumb"></span></label>
         </div>
 
         <div class="row">
           <span class="lbl">Allow unicode<span class="hint">keep non-ASCII in output</span></span>
-          <span class="switch"><input type="checkbox" id="allow-unicode"><span class="track"></span><span class="thumb"></span></span>
+          <label class="switch"><input type="checkbox" id="allow-unicode"><span class="track"></span><span class="thumb"></span></label>
+        </div>
+
+        <div class="row">
+          <span class="lbl">Locale<span class="hint">language-specific transliteration</span></span>
+          <select class="text-input" id="locale" aria-label="Transliteration locale">
+            <option value="Default" selected>Default</option>
+            <option value="German">German</option>
+            <option value="Danish">Danish</option>
+            <option value="Norwegian">Norwegian</option>
+            <option value="Swedish">Swedish</option>
+            <option value="Turkish">Turkish</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <span class="lbl">Decamelize<span class="hint">fooBar → foo-bar</span></span>
+          <label class="switch"><input type="checkbox" id="decamelize"><span class="track"></span><span class="thumb"></span></label>
+        </div>
+
+        <div class="row">
+          <span class="lbl">HTML entities<span class="hint">&amp;amp; → and</span></span>
+          <label class="switch"><input type="checkbox" id="html-entities"><span class="track"></span><span class="thumb"></span></label>
         </div>
 
         <div class="stack">
@@ -505,6 +531,9 @@
     wordBoundary: $("word-boundary"),
     transliterate: $("transliterate"),
     allowUnicode: $("allow-unicode"),
+    locale: $("locale"),
+    decamelize: $("decamelize"),
+    htmlEntities: $("html-entities"),
     stopWords: $("stop-words"),
     replacements: $("replacements"),
     addRepl: $("add-repl")
@@ -532,6 +561,9 @@
       wordBoundary: els.wordBoundary.checked,
       transliterate: els.transliterate.checked,
       allowUnicode: els.allowUnicode.checked,
+      locale: els.locale.value,
+      decamelize: els.decamelize.checked,
+      decodeHtmlEntities: els.htmlEntities.checked,
       customReplacements: customReplacements,
       stopWords: stopWords
     };
@@ -540,6 +572,7 @@
   function isDefaultConfig(opts) {
     return opts.separator === "-" && opts.lowercase && opts.maxLength === null &&
       !opts.wordBoundary && opts.transliterate && !opts.allowUnicode &&
+      opts.locale === "Default" && !opts.decamelize && !opts.decodeHtmlEntities &&
       opts.customReplacements.length === 0 && opts.stopWords.length === 0;
   }
 
@@ -580,6 +613,8 @@
     }
     lines.push('<span class="kw">import</span> glugify');
     lines.push('<span class="kw">import</span> glugify/config');
+    if (opts.locale !== "Default")
+      lines.push('<span class="kw">import</span> glugify/locale');
     lines.push("");
     lines.push('<span class="kw">let</span> config =');
     lines.push('  config.<span class="fn">default</span>()');
@@ -595,6 +630,12 @@
       lines.push('  |&gt; config.<span class="fn">with_transliterate</span>(<span class="kw">False</span>)');
     if (opts.allowUnicode)
       lines.push('  |&gt; config.<span class="fn">with_allow_unicode</span>(<span class="kw">True</span>)');
+    if (opts.locale !== "Default")
+      lines.push('  |&gt; config.<span class="fn">with_locale</span>(locale.<span class="kw">' + opts.locale + "</span>)");
+    if (opts.decamelize)
+      lines.push('  |&gt; config.<span class="fn">with_decamelize</span>(<span class="kw">True</span>)');
+    if (opts.decodeHtmlEntities)
+      lines.push('  |&gt; config.<span class="fn">with_decode_html_entities</span>(<span class="kw">True</span>)');
     if (opts.customReplacements.length > 0) {
       lines.push('  |&gt; config.<span class="fn">with_custom_replacements</span>([');
       opts.customReplacements.forEach(function (pair, i) {
@@ -719,7 +760,8 @@
   [els.separator, els.maxLength, els.stopWords].forEach(function (el) {
     el.addEventListener("input", function () { update(true); });
   });
-  [els.lowercase, els.wordBoundary, els.transliterate, els.allowUnicode].forEach(function (el) {
+  [els.lowercase, els.wordBoundary, els.transliterate, els.allowUnicode,
+   els.locale, els.decamelize, els.htmlEntities].forEach(function (el) {
     el.addEventListener("change", function () { update(true); });
   });
 
