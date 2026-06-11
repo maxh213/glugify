@@ -24,8 +24,12 @@
 //// ```
 ////
 //// The character classes come from the host's Unicode tables (Erlang's
-//// `re` module or the JavaScript regex engine), so characters assigned
-//// in very recent Unicode versions may differ slightly between targets.
+//// `re` module or the JavaScript regex engine), so behavior can differ
+//// for characters from recently added scripts. In particular, OTP 27
+//// and earlier bundle a regex engine with Unicode 7.0 tables, so
+//// letters from scripts added later (Osage, Adlam, Cherokee lowercase,
+//// ...) are stripped there but kept on OTP 28+ and JavaScript. Common
+//// scripts are unaffected.
 
 import gleam/dict.{type Dict}
 import gleam/int

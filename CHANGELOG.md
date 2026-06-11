@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [3.1.0] - 2026-06-11
 
 ### Added
-- `glugify/anchor`: GitHub-compatible heading anchors implementing the exact github-slugger algorithm — `anchor.to_anchor("Hello, _World_!")` -> `"hello-_world_"`, with an `Anchorer` for github-slugger's duplicate counting (`intro`, `intro-1`, ...) and `maintaining_case` variants. Validated against the github-slugger test fixtures on both targets (two Unicode-version-sensitive fixtures are omitted: they depend on which Unicode tables the regex engine ships, not on the algorithm). Implemented with per-target FFI (`re` with Unicode properties on Erlang, Unicode property escapes in JavaScript)
+- `glugify/anchor`: GitHub-compatible heading anchors implementing the exact github-slugger algorithm — `anchor.to_anchor("Hello, _World_!")` -> `"hello-_world_"`, with an `Anchorer` for github-slugger's duplicate counting (`intro`, `intro-1`, ...) and `maintaining_case` variants. Validated against the github-slugger test fixtures on both targets (the synthetic Unicode-category sweep fixtures that keep post-Unicode-7.0 characters are omitted — OTP <= 27 ships Unicode 7.0 regex tables, so they test the engine version, not the algorithm). Implemented with per-target FFI (`re` with Unicode properties on Erlang, Unicode property escapes in JavaScript)
 - The [live playground](https://maxh213.github.io/glugify/) is now published via GitHub Pages and linked from the Hex package page; it gained controls for locale, decamelize and HTML entity decoding
 
 ### Fixed
