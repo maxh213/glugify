@@ -28,7 +28,10 @@ jobs:
       - run: gleam deps download
       - run: gleam test
       - run: gleam test --target javascript
+      # The formatter's style evolves between Gleam versions, so only the
+      # newest matrix entry checks formatting.
       - run: gleam format --check src test
+        if: matrix.gleam-version == '1.17.0'
 
   # Tests against the newest allowed versions of every dependency so the
   # published version constraints stay honest as the ecosystem moves.
