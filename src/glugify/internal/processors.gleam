@@ -46,21 +46,14 @@ pub fn apply_separators(
     "" -> {
       text
       |> string.to_graphemes
-      |> list.filter(fn(char) {
-        is_alphanumeric_or_unicode(char, config.allow_unicode)
-      })
+      |> list.filter(fn(char) { is_slug_char(char, config) })
       |> string.join("")
       |> Ok
     }
     _ -> {
       text
       |> string.to_graphemes
-      |> apply_separators_simple(
-        config.separator,
-        config.allow_unicode,
-        [],
-        False,
-      )
+      |> apply_separators_simple(config, [], False)
       |> string.join("")
       |> Ok
     }
@@ -69,34 +62,24 @@ pub fn apply_separators(
 
 fn apply_separators_simple(
   graphemes: List(String),
-  separator: String,
-  allow_unicode: Bool,
+  config: Config,
   acc: List(String),
   last_was_separator: Bool,
 ) -> List(String) {
   case graphemes {
     [] -> list.reverse(acc)
     [char, ..rest] -> {
-      case is_alphanumeric_or_unicode(char, allow_unicode) {
-        True ->
-          apply_separators_simple(
-            rest,
-            separator,
-            allow_unicode,
-            [char, ..acc],
-            False,
-          )
+      case is_slug_char(char, config) {
+        True -> apply_separators_simple(rest, config, [char, ..acc], False)
         False -> {
           case last_was_separator || list.is_empty(acc) {
-            True ->
-              apply_separators_simple(rest, separator, allow_unicode, acc, True)
+            True -> apply_separators_simple(rest, config, acc, True)
             False -> {
               let separator_chars =
-                string.to_graphemes(separator) |> list.reverse
+                string.to_graphemes(config.separator) |> list.reverse
               apply_separators_simple(
                 rest,
-                separator,
-                allow_unicode,
+                config,
                 list.append(separator_chars, acc),
                 True,
               )
@@ -106,6 +89,13 @@ fn apply_separators_simple(
       }
     }
   }
+}
+
+/// A grapheme that belongs in the slug body: alphanumeric, permitted
+/// unicode, or explicitly ignored by configuration.
+fn is_slug_char(char: String, config: Config) -> Bool {
+  is_alphanumeric_or_unicode(char, config.allow_unicode)
+  || list.contains(config.ignore, char)
 }
 
 fn ends_with_separator(acc: List(String), separator: String) -> Bool {
@@ -157,12 +147,15 @@ fn is_alphanumeric_or_unicode(char: String, allow_unicode: Bool) -> Bool {
 }
 
 fn is_unicode_char(char: String) -> Bool {
+  // A grapheme may span several codepoints (decomposed accents, emoji
+  // with modifiers or joiners); treat it as unicode when any codepoint
+  // is outside ASCII.
   case string.to_utf_codepoints(char) {
-    [codepoint] -> {
-      let code = string.utf_codepoint_to_int(codepoint)
-      code > 127
-    }
-    _ -> False
+    [] -> False
+    codepoints ->
+      list.any(codepoints, fn(codepoint) {
+        string.utf_codepoint_to_int(codepoint) > 127
+      })
   }
 }
 
@@ -179,31 +172,25 @@ pub fn remove_invalid_chars(
 ) -> Result(String, SlugifyError) {
   text
   |> string.to_graphemes
-  |> filter_valid_chars_with_unicode(config.separator, config.allow_unicode, [])
+  |> filter_valid_chars_with_unicode(config, [])
   |> string.join("")
   |> Ok
 }
 
 fn filter_valid_chars_with_unicode(
   graphemes: List(String),
-  separator: String,
-  allow_unicode: Bool,
+  config: Config,
   acc: List(String),
 ) -> List(String) {
   case graphemes {
     [] -> list.reverse(acc)
     [char, ..rest] -> {
       case
-        is_alphanumeric_or_unicode(char, allow_unicode)
-        || is_char_in_separator(char, separator)
+        is_slug_char(char, config)
+        || is_char_in_separator(char, config.separator)
       {
-        True ->
-          filter_valid_chars_with_unicode(rest, separator, allow_unicode, [
-            char,
-            ..acc
-          ])
-        False ->
-          filter_valid_chars_with_unicode(rest, separator, allow_unicode, acc)
+        True -> filter_valid_chars_with_unicode(rest, config, [char, ..acc])
+        False -> filter_valid_chars_with_unicode(rest, config, acc)
       }
     }
   }
@@ -447,6 +434,61 @@ fn find_last_separator_by_string(
   }
 }
 
+/// Inserts spaces at camelCase word boundaries so each word slugifies
+/// separately: "fooBar" -> "foo Bar", "HTMLParser" -> "HTML Parser".
+/// Only ASCII letters and digits are considered for boundaries.
+pub fn decamelize(text: String) -> Result(String, SlugifyError) {
+  text
+  |> string.to_graphemes
+  |> decamelize_graphemes([])
+  |> string.join("")
+  |> Ok
+}
+
+fn decamelize_graphemes(
+  graphemes: List(String),
+  acc: List(String),
+) -> List(String) {
+  case graphemes {
+    [a, b, ..rest] -> {
+      case is_lower_or_digit(a) && is_upper(b) {
+        True -> decamelize_graphemes([b, ..rest], [" ", a, ..acc])
+        False ->
+          case rest {
+            [c, ..] ->
+              case is_upper(a) && is_upper(b) && is_lower_or_digit(c) {
+                True -> decamelize_graphemes([b, ..rest], [" ", a, ..acc])
+                False -> decamelize_graphemes([b, ..rest], [a, ..acc])
+              }
+            [] -> decamelize_graphemes([b, ..rest], [a, ..acc])
+          }
+      }
+    }
+    [a] -> list.reverse([a, ..acc])
+    [] -> list.reverse(acc)
+  }
+}
+
+fn is_upper(char: String) -> Bool {
+  case string.to_utf_codepoints(char) {
+    [codepoint] -> {
+      let code = string.utf_codepoint_to_int(codepoint)
+      code >= 65 && code <= 90
+    }
+    _ -> False
+  }
+}
+
+fn is_lower_or_digit(char: String) -> Bool {
+  case string.to_utf_codepoints(char) {
+    [codepoint] -> {
+      let code = string.utf_codepoint_to_int(codepoint)
+      { code >= 97 && code <= 122 } || { code >= 48 && code <= 57 }
+    }
+    _ -> False
+  }
+}
+
 pub fn apply_custom_replacements(
   text: String,
   replacements: List(#(String, String)),
@@ -475,8 +517,10 @@ pub fn filter_stop_words(
   case list.is_empty(stop_words) {
     True -> Ok(text)
     False -> {
+      let lowered_stop_words = list.map(stop_words, string.lowercase)
       let words = string.split(text, separator)
-      let filtered_words = filter_stop_words_helper(words, stop_words, [])
+      let filtered_words =
+        filter_stop_words_helper(words, lowered_stop_words, [])
       string.join(filtered_words, separator) |> Ok
     }
   }
@@ -484,15 +528,16 @@ pub fn filter_stop_words(
 
 fn filter_stop_words_helper(
   words: List(String),
-  stop_words: List(String),
+  lowered_stop_words: List(String),
   acc: List(String),
 ) -> List(String) {
   case words {
     [] -> list.reverse(acc)
     [word, ..rest] -> {
-      case list.contains(stop_words, word) {
-        True -> filter_stop_words_helper(rest, stop_words, acc)
-        False -> filter_stop_words_helper(rest, stop_words, [word, ..acc])
+      case list.contains(lowered_stop_words, string.lowercase(word)) {
+        True -> filter_stop_words_helper(rest, lowered_stop_words, acc)
+        False ->
+          filter_stop_words_helper(rest, lowered_stop_words, [word, ..acc])
       }
     }
   }

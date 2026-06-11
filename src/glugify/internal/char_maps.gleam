@@ -1,74 +1,404 @@
-import gleam/dict
+/// Character lookup tables for transliteration.
+///
+/// Lookups are implemented as case expressions rather than dictionaries so
+/// the compiler can produce constant-time jump tables with no per-call
+/// allocation (a `dict.Dict` would need to be rebuilt on every call, since
+/// Gleam constants cannot hold computed values).
+import glugify/locale.{type Locale}
 
-/// Returns the combined character mapping that includes both Latin extended
-/// characters and common symbols.
-pub fn combined_char_map() -> dict.Dict(String, String) {
-  dict.merge(latin_extended_map(), symbol_map())
+/// Locale-specific transliterations, checked before the general tables.
+pub fn lookup_locale(grapheme: String, locale: Locale) -> Result(String, Nil) {
+  case locale {
+    locale.German ->
+      case grapheme {
+        "ä" -> Ok("ae")
+        "ö" -> Ok("oe")
+        "ü" -> Ok("ue")
+        "Ä" -> Ok("Ae")
+        "Ö" -> Ok("Oe")
+        "Ü" -> Ok("Ue")
+        _ -> Error(Nil)
+      }
+    locale.Danish | locale.Norwegian ->
+      case grapheme {
+        "æ" -> Ok("ae")
+        "ø" -> Ok("oe")
+        "å" -> Ok("aa")
+        "Æ" -> Ok("Ae")
+        "Ø" -> Ok("Oe")
+        "Å" -> Ok("Aa")
+        _ -> Error(Nil)
+      }
+    locale.Default | locale.Swedish | locale.Turkish -> Error(Nil)
+  }
 }
 
-pub fn latin_extended_map() -> dict.Dict(String, String) {
-  dict.from_list([
-    #("à", "a"),
-    #("á", "a"),
-    #("ä", "a"),
-    #("ã", "a"),
-    #("â", "a"),
-    #("å", "a"),
-    #("è", "e"),
-    #("é", "e"),
-    #("ë", "e"),
-    #("ê", "e"),
-    #("ì", "i"),
-    #("í", "i"),
-    #("ï", "i"),
-    #("î", "i"),
-    #("ò", "o"),
-    #("ó", "o"),
-    #("ö", "o"),
-    #("õ", "o"),
-    #("ô", "o"),
-    #("ù", "u"),
-    #("ú", "u"),
-    #("ü", "u"),
-    #("û", "u"),
-    #("ç", "c"),
-    #("ñ", "n"),
-    #("ß", "ss"),
-    #("À", "A"),
-    #("Á", "A"),
-    #("Ä", "A"),
-    #("Ã", "A"),
-    #("Â", "A"),
-    #("Å", "A"),
-    #("È", "E"),
-    #("É", "E"),
-    #("Ë", "E"),
-    #("Ê", "E"),
-    #("Ì", "I"),
-    #("Í", "I"),
-    #("Ï", "I"),
-    #("Î", "I"),
-    #("Ò", "O"),
-    #("Ó", "O"),
-    #("Ö", "O"),
-    #("Õ", "O"),
-    #("Ô", "O"),
-    #("Ù", "U"),
-    #("Ú", "U"),
-    #("Ü", "U"),
-    #("Û", "U"),
-    #("Ç", "C"),
-    #("Ñ", "N"),
-  ])
+/// Looks up the ASCII transliteration for a single grapheme.
+///
+/// Checks, in order: Latin extended characters, Cyrillic, Greek,
+/// punctuation/whitespace, and symbols. Returns `Error(Nil)` when the
+/// grapheme has no known mapping.
+pub fn lookup(grapheme: String) -> Result(String, Nil) {
+  case lookup_latin(grapheme) {
+    Ok(replacement) -> Ok(replacement)
+    Error(Nil) ->
+      case lookup_cyrillic(grapheme) {
+        Ok(replacement) -> Ok(replacement)
+        Error(Nil) ->
+          case lookup_greek(grapheme) {
+            Ok(replacement) -> Ok(replacement)
+            Error(Nil) ->
+              case lookup_arabic(grapheme) {
+                Ok(replacement) -> Ok(replacement)
+                Error(Nil) ->
+                  case lookup_hebrew(grapheme) {
+                    Ok(replacement) -> Ok(replacement)
+                    Error(Nil) ->
+                      case lookup_punctuation(grapheme) {
+                        Ok(replacement) -> Ok(replacement)
+                        Error(Nil) -> lookup_symbol(grapheme)
+                      }
+                  }
+              }
+          }
+      }
+  }
 }
 
-pub fn symbol_map() -> dict.Dict(String, String) {
-  dict.from_list([
-    #("&", " and "),
-    #("@", " at "),
-    #("%", " percent "),
-    #("$", " dollar "),
-    #("€", " euro "),
-    #("£", " pound "),
-  ])
+/// Latin-1 Supplement and Latin Extended-A/B characters.
+pub fn lookup_latin(grapheme: String) -> Result(String, Nil) {
+  case grapheme {
+    "à" | "á" | "â" | "ã" | "ä" | "å" | "ā" | "ă" | "ą" -> Ok("a")
+    "À" | "Á" | "Â" | "Ã" | "Ä" | "Å" | "Ā" | "Ă" | "Ą" -> Ok("A")
+    "è" | "é" | "ê" | "ë" | "ē" | "ĕ" | "ė" | "ę" | "ě" -> Ok("e")
+    "È" | "É" | "Ê" | "Ë" | "Ē" | "Ĕ" | "Ė" | "Ę" | "Ě" -> Ok("E")
+    "ì" | "í" | "î" | "ï" | "ī" | "ĭ" | "į" | "ı" -> Ok("i")
+    "Ì" | "Í" | "Î" | "Ï" | "Ī" | "Ĭ" | "Į" | "İ" -> Ok("I")
+    "ò" | "ó" | "ô" | "õ" | "ö" | "ø" | "ō" | "ŏ" | "ő" -> Ok("o")
+    "Ò" | "Ó" | "Ô" | "Õ" | "Ö" | "Ø" | "Ō" | "Ŏ" | "Ő" -> Ok("O")
+    "ù" | "ú" | "û" | "ü" | "ū" | "ŭ" | "ů" | "ű" | "ų" -> Ok("u")
+    "Ù" | "Ú" | "Û" | "Ü" | "Ū" | "Ŭ" | "Ů" | "Ű" | "Ų" -> Ok("U")
+    "ý" | "ÿ" | "ŷ" -> Ok("y")
+    "Ý" | "Ÿ" | "Ŷ" -> Ok("Y")
+    "ç" | "ć" | "ĉ" | "ċ" | "č" -> Ok("c")
+    "Ç" | "Ć" | "Ĉ" | "Ċ" | "Č" -> Ok("C")
+    "ñ" | "ń" | "ņ" | "ň" -> Ok("n")
+    "Ñ" | "Ń" | "Ņ" | "Ň" -> Ok("N")
+    "ß" -> Ok("ss")
+    "æ" -> Ok("ae")
+    "Æ" -> Ok("AE")
+    "œ" -> Ok("oe")
+    "Œ" -> Ok("OE")
+    "ð" -> Ok("d")
+    "Ð" -> Ok("D")
+    "þ" -> Ok("th")
+    "Þ" -> Ok("Th")
+    "đ" | "ď" -> Ok("d")
+    "Đ" | "Ď" -> Ok("D")
+    "ġ" | "ğ" | "ĝ" | "ģ" -> Ok("g")
+    "Ġ" | "Ğ" | "Ĝ" | "Ģ" -> Ok("G")
+    "ĥ" | "ħ" -> Ok("h")
+    "Ĥ" | "Ħ" -> Ok("H")
+    "ĵ" -> Ok("j")
+    "Ĵ" -> Ok("J")
+    "ķ" -> Ok("k")
+    "Ķ" -> Ok("K")
+    "ĺ" | "ļ" | "ľ" | "ŀ" | "ł" -> Ok("l")
+    "Ĺ" | "Ļ" | "Ľ" | "Ŀ" | "Ł" -> Ok("L")
+    "ŕ" | "ŗ" | "ř" -> Ok("r")
+    "Ŕ" | "Ŗ" | "Ř" -> Ok("R")
+    "ś" | "ŝ" | "ş" | "š" | "ș" -> Ok("s")
+    "Ś" | "Ŝ" | "Ş" | "Š" | "Ș" -> Ok("S")
+    "ţ" | "ť" | "ŧ" | "ț" -> Ok("t")
+    "Ţ" | "Ť" | "Ŧ" | "Ț" -> Ok("T")
+    "ŵ" -> Ok("w")
+    "Ŵ" -> Ok("W")
+    "ź" | "ż" | "ž" -> Ok("z")
+    "Ź" | "Ż" | "Ž" -> Ok("Z")
+    _ -> Error(Nil)
+  }
+}
+
+/// Cyrillic characters (Russian alphabet plus common Ukrainian and
+/// Belarusian letters), using a common romanization scheme.
+pub fn lookup_cyrillic(grapheme: String) -> Result(String, Nil) {
+  case grapheme {
+    "а" -> Ok("a")
+    "б" -> Ok("b")
+    "в" -> Ok("v")
+    "г" -> Ok("g")
+    "д" -> Ok("d")
+    "е" -> Ok("e")
+    "ё" -> Ok("yo")
+    "ж" -> Ok("zh")
+    "з" -> Ok("z")
+    "и" -> Ok("i")
+    "й" -> Ok("y")
+    "к" -> Ok("k")
+    "л" -> Ok("l")
+    "м" -> Ok("m")
+    "н" -> Ok("n")
+    "о" -> Ok("o")
+    "п" -> Ok("p")
+    "р" -> Ok("r")
+    "с" -> Ok("s")
+    "т" -> Ok("t")
+    "у" -> Ok("u")
+    "ф" -> Ok("f")
+    "х" -> Ok("h")
+    "ц" -> Ok("ts")
+    "ч" -> Ok("ch")
+    "ш" -> Ok("sh")
+    "щ" -> Ok("shch")
+    "ъ" -> Ok("")
+    "ы" -> Ok("y")
+    "ь" -> Ok("")
+    "э" -> Ok("e")
+    "ю" -> Ok("yu")
+    "я" -> Ok("ya")
+    "є" -> Ok("ye")
+    "і" -> Ok("i")
+    "ї" -> Ok("yi")
+    "ґ" -> Ok("g")
+    "ў" -> Ok("u")
+    "А" -> Ok("A")
+    "Б" -> Ok("B")
+    "В" -> Ok("V")
+    "Г" -> Ok("G")
+    "Д" -> Ok("D")
+    "Е" -> Ok("E")
+    "Ё" -> Ok("Yo")
+    "Ж" -> Ok("Zh")
+    "З" -> Ok("Z")
+    "И" -> Ok("I")
+    "Й" -> Ok("Y")
+    "К" -> Ok("K")
+    "Л" -> Ok("L")
+    "М" -> Ok("M")
+    "Н" -> Ok("N")
+    "О" -> Ok("O")
+    "П" -> Ok("P")
+    "Р" -> Ok("R")
+    "С" -> Ok("S")
+    "Т" -> Ok("T")
+    "У" -> Ok("U")
+    "Ф" -> Ok("F")
+    "Х" -> Ok("H")
+    "Ц" -> Ok("Ts")
+    "Ч" -> Ok("Ch")
+    "Ш" -> Ok("Sh")
+    "Щ" -> Ok("Shch")
+    "Ъ" -> Ok("")
+    "Ы" -> Ok("Y")
+    "Ь" -> Ok("")
+    "Э" -> Ok("E")
+    "Ю" -> Ok("Yu")
+    "Я" -> Ok("Ya")
+    "Є" -> Ok("Ye")
+    "І" -> Ok("I")
+    "Ї" -> Ok("Yi")
+    "Ґ" -> Ok("G")
+    "Ў" -> Ok("U")
+    _ -> Error(Nil)
+  }
+}
+
+/// Greek characters (modern Greek romanization).
+pub fn lookup_greek(grapheme: String) -> Result(String, Nil) {
+  case grapheme {
+    "α" | "ά" -> Ok("a")
+    "β" -> Ok("v")
+    "γ" -> Ok("g")
+    "δ" -> Ok("d")
+    "ε" | "έ" -> Ok("e")
+    "ζ" -> Ok("z")
+    "η" | "ή" -> Ok("i")
+    "θ" -> Ok("th")
+    "ι" | "ί" | "ϊ" | "ΐ" -> Ok("i")
+    "κ" -> Ok("k")
+    "λ" -> Ok("l")
+    "μ" -> Ok("m")
+    "ν" -> Ok("n")
+    "ξ" -> Ok("ks")
+    "ο" | "ό" -> Ok("o")
+    "π" -> Ok("p")
+    "ρ" -> Ok("r")
+    "σ" | "ς" -> Ok("s")
+    "τ" -> Ok("t")
+    "υ" | "ύ" | "ϋ" | "ΰ" -> Ok("y")
+    "φ" -> Ok("f")
+    "χ" -> Ok("x")
+    "ψ" -> Ok("ps")
+    "ω" | "ώ" -> Ok("o")
+    "Α" | "Ά" -> Ok("A")
+    "Β" -> Ok("V")
+    "Γ" -> Ok("G")
+    "Δ" -> Ok("D")
+    "Ε" | "Έ" -> Ok("E")
+    "Ζ" -> Ok("Z")
+    "Η" | "Ή" -> Ok("I")
+    "Θ" -> Ok("Th")
+    "Ι" | "Ί" -> Ok("I")
+    "Κ" -> Ok("K")
+    "Λ" -> Ok("L")
+    "Μ" -> Ok("M")
+    "Ν" -> Ok("N")
+    "Ξ" -> Ok("Ks")
+    "Ο" | "Ό" -> Ok("O")
+    "Π" -> Ok("P")
+    "Ρ" -> Ok("R")
+    "Σ" -> Ok("S")
+    "Τ" -> Ok("T")
+    "Υ" | "Ύ" -> Ok("Y")
+    "Φ" -> Ok("F")
+    "Χ" -> Ok("X")
+    "Ψ" -> Ok("Ps")
+    "Ω" | "Ώ" -> Ok("O")
+    _ -> Error(Nil)
+  }
+}
+
+/// Arabic and Persian characters, using a basic consonantal romanization
+/// (vowel marks are dropped, as in other slugify libraries).
+pub fn lookup_arabic(grapheme: String) -> Result(String, Nil) {
+  case grapheme {
+    "ا" | "أ" | "آ" | "ى" -> Ok("a")
+    "إ" -> Ok("i")
+    "ء" | "ئ" -> Ok("e")
+    "ؤ" -> Ok("w")
+    "ب" -> Ok("b")
+    "ت" -> Ok("t")
+    "ث" -> Ok("th")
+    "ج" -> Ok("j")
+    "ح" -> Ok("h")
+    "خ" -> Ok("kh")
+    "د" -> Ok("d")
+    "ذ" -> Ok("dh")
+    "ر" -> Ok("r")
+    "ز" -> Ok("z")
+    "س" -> Ok("s")
+    "ش" -> Ok("sh")
+    "ص" -> Ok("s")
+    "ض" -> Ok("d")
+    "ط" -> Ok("t")
+    "ظ" -> Ok("z")
+    "ع" -> Ok("a")
+    "غ" -> Ok("gh")
+    "ف" -> Ok("f")
+    "ق" -> Ok("q")
+    "ك" | "ک" -> Ok("k")
+    "ل" -> Ok("l")
+    "م" -> Ok("m")
+    "ن" -> Ok("n")
+    "ه" | "ة" -> Ok("h")
+    "و" -> Ok("w")
+    "ي" | "ی" -> Ok("y")
+    "پ" -> Ok("p")
+    "چ" -> Ok("ch")
+    "ژ" -> Ok("zh")
+    "گ" -> Ok("g")
+    "٠" | "۰" -> Ok("0")
+    "١" | "۱" -> Ok("1")
+    "٢" | "۲" -> Ok("2")
+    "٣" | "۳" -> Ok("3")
+    "٤" | "۴" -> Ok("4")
+    "٥" | "۵" -> Ok("5")
+    "٦" | "۶" -> Ok("6")
+    "٧" | "۷" -> Ok("7")
+    "٨" | "۸" -> Ok("8")
+    "٩" | "۹" -> Ok("9")
+    _ -> Error(Nil)
+  }
+}
+
+/// Hebrew characters, using a basic consonantal romanization
+/// (niqqud vowel points are dropped).
+pub fn lookup_hebrew(grapheme: String) -> Result(String, Nil) {
+  case grapheme {
+    "א" -> Ok("a")
+    "ב" -> Ok("b")
+    "ג" -> Ok("g")
+    "ד" -> Ok("d")
+    "ה" -> Ok("h")
+    "ו" -> Ok("v")
+    "ז" -> Ok("z")
+    "ח" -> Ok("h")
+    "ט" -> Ok("t")
+    "י" -> Ok("y")
+    "כ" | "ך" -> Ok("k")
+    "ל" -> Ok("l")
+    "מ" | "ם" -> Ok("m")
+    "נ" | "ן" -> Ok("n")
+    "ס" -> Ok("s")
+    "ע" -> Ok("a")
+    "פ" | "ף" -> Ok("p")
+    "צ" | "ץ" -> Ok("ts")
+    "ק" -> Ok("k")
+    "ר" -> Ok("r")
+    "ש" -> Ok("sh")
+    "ת" -> Ok("t")
+    _ -> Error(Nil)
+  }
+}
+
+/// Typographic punctuation commonly produced by word processors and CMSes.
+///
+/// Apostrophe-like characters map to the empty string so contractions
+/// stay joined ("don’t" becomes "dont"); everything else maps to a space,
+/// which later becomes a separator.
+pub fn lookup_punctuation(grapheme: String) -> Result(String, Nil) {
+  case grapheme {
+    "'" | "’" | "‘" | "‚" | "ʼ" | "ʻ" -> Ok("")
+    "“" | "”" | "„" | "‟" | "«" | "»" | "‹" | "›" | "′" | "″" -> Ok(" ")
+    "–" | "—" | "―" | "‒" | "‐" | "‑" -> Ok(" ")
+    "…" | "•" | "·" | "∙" | "¡" | "¿" | "§" | "¶" | "†" | "‡" -> Ok(" ")
+    // Unicode whitespace: no-break space, en/em and other typographic
+    // spaces, narrow no-break space, ideographic space, zero-width space
+    "\u{00A0}"
+    | "\u{2000}"
+    | "\u{2001}"
+    | "\u{2002}"
+    | "\u{2003}"
+    | "\u{2004}"
+    | "\u{2005}"
+    | "\u{2006}"
+    | "\u{2007}"
+    | "\u{2008}"
+    | "\u{2009}"
+    | "\u{200A}"
+    | "\u{200B}"
+    | "\u{202F}"
+    | "\u{3000}" -> Ok(" ")
+    _ -> Error(Nil)
+  }
+}
+
+/// Currency signs and common symbols, mapped to words.
+pub fn lookup_symbol(grapheme: String) -> Result(String, Nil) {
+  case grapheme {
+    "&" -> Ok(" and ")
+    "@" -> Ok(" at ")
+    "%" -> Ok(" percent ")
+    "$" -> Ok(" dollar ")
+    "€" -> Ok(" euro ")
+    "£" -> Ok(" pound ")
+    "¥" -> Ok(" yen ")
+    "¢" -> Ok(" cent ")
+    "₹" -> Ok(" rupee ")
+    "₩" -> Ok(" won ")
+    "₽" -> Ok(" ruble ")
+    "₺" -> Ok(" lira ")
+    "₫" -> Ok(" dong ")
+    "฿" -> Ok(" baht ")
+    "©" -> Ok(" c ")
+    "®" -> Ok(" r ")
+    "™" -> Ok(" tm ")
+    "°" -> Ok(" degrees ")
+    "№" -> Ok(" no ")
+    "×" -> Ok(" x ")
+    "÷" -> Ok(" ")
+    "±" -> Ok(" plus ")
+    "µ" -> Ok("u")
+    _ -> Error(Nil)
+  }
 }

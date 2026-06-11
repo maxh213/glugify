@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-06-11
+
+### Breaking
+- `Config` gained three fields (`locale`, `decamelize`, `decode_html_entities`). Code using the builder API (`config.default() |> config.with_*`) is unaffected; only direct `Config(...)` construction or pattern matching needs updating
+- ASCII apostrophes are now removed like smart apostrophes ("don't" -> "dont", previously "don-t"), matching slugify libraries in other ecosystems
+- Transliteration behavior changed as described below (unmappable characters strip instead of erroring)
+
+### Added
+- `glugify/slugger`: stateful unique-slug generation — `slugger.new() |> slugger.slug("Hello")` appends `-1`, `-2`, ... to duplicate slugs, with collision-safe handling of pre-suffixed input (`foo`, `foo`, `foo-1` -> `foo`, `foo-1`, `foo-1-1`). `slug_with` accepts a custom `Config`
+- `glugify/locale` and `config.with_locale`: locale-aware transliteration — `locale.German` (`ä -> ae`, `ö -> oe`, `ü -> ue`), `locale.Danish`/`locale.Norwegian` (`æ -> ae`, `ø -> oe`, `å -> aa`), plus explicit `Swedish`/`Turkish` (same as default mapping)
+- `config.with_decamelize`: split camelCase/PascalCase before slugifying (`"myAwesomeXMLParser"` -> `"my-awesome-xml-parser"`)
+- `config.with_decode_html_entities`: decode named (`&amp;`), decimal (`&#38;`) and hex (`&#x26;`) HTML entities before slugifying
+- `config.seo_preset()`: `default()` with a 60-character limit and word-boundary truncation, per search engine URL guidance
+- `config.with_ignore`: graphemes kept verbatim in the slug — exempt from transliteration, separator conversion and invalid-character removal (`with_ignore(["#"])` keeps "C#" as `c#`); `unicode.validate_ascii_or_unicode` and the new `unicode.transliterate_text_with` take the ignore list as a parameter
+- Greatly expanded transliteration coverage: full Latin-1 Supplement and Latin Extended-A (`ø`, `Ł`, `æ`, `œ`, `ð`, `þ`, `š`, `ž`, Turkish `İ`/`ı`, and more), Cyrillic (Russian, Ukrainian, Belarusian), Greek, Arabic/Persian (basic consonantal romanization plus Arabic-Indic digits), and Hebrew
+- Typographic punctuation handling: smart quotes, en/em dashes, ellipses, guillemets, bullets and Unicode spaces (including no-break space) now become separators; apostrophes are removed so contractions stay joined ("Don't" -> "dont")
+- Currency and symbol mappings: `¥`, `¢`, `₹`, `₩`, `₽`, `₺`, `₫`, `฿`, `©`, `®`, `™`, `°`, `№`, `×`, `±`
+- `config.with_preserve_leading_underscore` and `config.with_preserve_trailing_dash` builder functions — these `Config` fields existed since 1.0 but previously had no builders and no effect
+- Decomposed (NFD) Unicode input is now handled: combining marks are stripped and base characters mapped, so `"cafe" <> "\u{0301}"` slugifies to `"cafe"` instead of failing
+
+### Changed
+- **Transliteration no longer errors on unmappable characters**: emoji, CJK and other unmapped characters are now stripped (matching slugify libraries in every other major ecosystem) instead of returning `TransliterationFailed`, which made Tier 1 `slugify` silently return `""` for inputs like `"10 Tips 🚀"`. `TransliterationFailed` is still returned when transliteration is disabled and `allow_unicode` is `False`
+- Stop word matching is now case-insensitive, as the documentation always stated ("The" is removed by stop word "the" even with `lowercase: False`)
+- Multi-codepoint graphemes (decomposed accents, emoji ZWJ sequences) are now preserved in `allow_unicode` mode instead of being silently dropped
+- Character lookups now use pattern matching instead of rebuilding a `dict.Dict` on every call, reducing per-call allocation
+
+### Fixed
+- README Unicode example claimed `slugify_with("Café naïve résumé", unicode_config)` returns `Ok("caf-na-ve-r-sum")`; it returns `Ok("café-naïve-résumé")`
+
+### Technical Notes
+- Verified compatibility with Gleam 1.17; CI now uses Gleam 1.17.0 and also runs the test suite on the JavaScript target
+- README benchmark tables re-measured on the current code (Erlang target roughly 2-3x faster than the previously published numbers, largely from the pattern-matched character lookups)
+
 ## [2.0.3] - 2026-06-11
 
 ### Changed

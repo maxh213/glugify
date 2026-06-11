@@ -3,6 +3,8 @@ import gleeunit/should
 import glugify
 import glugify/config
 import glugify/errors
+import glugify/locale
+import glugify/slugger
 
 pub fn main() {
   gleeunit.main()
@@ -111,8 +113,9 @@ pub fn various_configuration_options_test() {
     |> config.with_custom_replacements([#("&", " and "), #("@", " at ")])
     |> config.with_stop_words(["the", "a"])
 
+  // Stop word matching is case-insensitive, so "The" is removed by "the"
   glugify.slugify_with("The Amazing @Café & Restaurant", comprehensive_config)
-  |> should.equal(Ok("The_Amazing_at_Café_and_Restaurant"))
+  |> should.equal(Ok("Amazing_at_Café_and_Restaurant"))
 }
 
 pub fn edge_case_empty_input_test() {
@@ -134,4 +137,68 @@ pub fn edge_case_whitespace_only_test() {
 pub fn edge_case_special_chars_only_test() {
   glugify.slugify("!@#$%^&*()")
   |> should.equal("at-dollar-percent-and")
+}
+
+pub fn readme_unique_slugs_test() {
+  let s = slugger.new()
+  let #(s, a) = slugger.slug(s, "Hello World")
+  let #(s, b) = slugger.slug(s, "Hello World")
+  let #(_, c) = slugger.slug(s, "Hello World")
+  a |> should.equal("hello-world")
+  b |> should.equal("hello-world-1")
+  c |> should.equal("hello-world-2")
+}
+
+pub fn readme_transliteration_coverage_test() {
+  glugify.slugify("10 Tips 🚀 for Gleam")
+  |> should.equal("10-tips-for-gleam")
+
+  glugify.slugify("Привет мир")
+  |> should.equal("privet-mir")
+
+  glugify.slugify("Don’t — “Stop”")
+  |> should.equal("dont-stop")
+}
+
+pub fn readme_locale_examples_test() {
+  let config =
+    config.default()
+    |> config.with_locale(locale.German)
+
+  glugify.slugify_with("Über München", config)
+  |> should.equal(Ok("ueber-muenchen"))
+
+  let config =
+    config.default()
+    |> config.with_locale(locale.Danish)
+
+  glugify.slugify_with("København på Ærø", config)
+  |> should.equal(Ok("koebenhavn-paa-aeroe"))
+}
+
+pub fn readme_decamelize_example_test() {
+  let config =
+    config.default()
+    |> config.with_decamelize(True)
+
+  glugify.slugify_with("myAwesomeXMLParser", config)
+  |> should.equal(Ok("my-awesome-xml-parser"))
+}
+
+pub fn readme_html_entities_example_test() {
+  let config =
+    config.default()
+    |> config.with_decode_html_entities(True)
+
+  glugify.slugify_with("Tom &amp; Jerry &ndash; Classics", config)
+  |> should.equal(Ok("tom-and-jerry-classics"))
+}
+
+pub fn readme_ignored_characters_example_test() {
+  let config =
+    config.default()
+    |> config.with_ignore(["#"])
+
+  glugify.slugify_with("C# and F# compared", config)
+  |> should.equal(Ok("c#-and-f#-compared"))
 }

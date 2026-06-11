@@ -288,15 +288,15 @@ pub fn latin_extended_consistency_test() {
 }
 
 pub fn cyrillic_consistency_test() {
-  // Test Cyrillic characters
+  // Cyrillic characters are transliterated using a common romanization
   glugify.slugify("Привет мир")
-  |> should.equal("")
+  |> should.equal("privet-mir")
 }
 
 pub fn arabic_consistency_test() {
-  // Test Arabic characters
+  // Arabic characters use a basic consonantal romanization
   glugify.slugify("مرحبا بالعالم")
-  |> should.equal("")
+  |> should.equal("mrhba-balaalm")
 }
 
 // PLATFORM-SPECIFIC FEATURE TESTS

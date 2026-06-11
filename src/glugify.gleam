@@ -3,6 +3,7 @@ import gleam/result
 import gleam/string
 import glugify/config.{type Config}
 import glugify/errors.{type SlugifyError}
+import glugify/internal/entities
 import glugify/internal/processors
 import glugify/internal/validators
 import glugify/unicode
@@ -75,16 +76,33 @@ pub fn slugify_with(
     Error(msg) -> Error(errors.ConfigurationError(msg))
   })
   use validated <- result.try(validators.validate_input(text))
-  use normalized <- result.try(processors.normalize_whitespace(validated))
+  let decoded = case config.decode_html_entities {
+    True -> entities.decode(validated)
+    False -> validated
+  }
+  use normalized <- result.try(processors.normalize_whitespace(decoded))
+  use decamelized <- result.try(case config.decamelize {
+    True -> processors.decamelize(normalized)
+    False -> Ok(normalized)
+  })
   use with_custom_replacements <- result.try(
-    processors.apply_custom_replacements(normalized, config.custom_replacements),
+    processors.apply_custom_replacements(
+      decamelized,
+      config.custom_replacements,
+    ),
   )
   use transliterated <- result.try(case config.transliterate {
-    True -> unicode.transliterate_text(with_custom_replacements)
+    True ->
+      unicode.transliterate_text_with(
+        with_custom_replacements,
+        config.locale,
+        config.ignore,
+      )
     False ->
       unicode.validate_ascii_or_unicode(
         with_custom_replacements,
         config.allow_unicode,
+        config.ignore,
       )
   })
   use normalized_after_transliteration <- result.try(
@@ -120,5 +138,29 @@ pub fn slugify_with(
     option.None -> Ok(trimmed)
   })
 
-  Ok(truncated)
+  Ok(apply_preserve_options(truncated, text, config))
+}
+
+fn apply_preserve_options(
+  slug: String,
+  input: String,
+  config: Config,
+) -> String {
+  let slug = case
+    config.preserve_leading_underscore
+    && string.starts_with(input, "_")
+    && !string.starts_with(slug, "_")
+  {
+    True -> "_" <> slug
+    False -> slug
+  }
+  case
+    config.preserve_trailing_dash
+    && string.ends_with(input, "-")
+    && config.separator != ""
+    && !string.ends_with(slug, config.separator)
+  {
+    True -> slug <> config.separator
+    False -> slug
+  }
 }

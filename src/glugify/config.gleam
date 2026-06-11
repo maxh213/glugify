@@ -1,10 +1,11 @@
 import gleam/option.{type Option}
 import gleam/string
+import glugify/locale.{type Locale}
 
 /// Configuration options for customizing slugification behavior.
-/// 
+///
 /// Each field controls a specific aspect of the slugification process:
-/// 
+///
 /// - `separator`: Character(s) used to separate words (default: "-")
 /// - `lowercase`: Whether to convert to lowercase (default: `True`)
 /// - `max_length`: Optional maximum length limit (default: `None`)
@@ -16,6 +17,10 @@ import gleam/string
 /// - `preserve_trailing_dash`: Whether to keep trailing dashes (default: `False`)
 /// - `stop_words`: List of words to remove (default: `[]`)
 /// - `trim`: Whether to trim whitespace (default: `True`)
+/// - `locale`: Locale for language-specific transliteration (default: `locale.Default`)
+/// - `decamelize`: Whether to split camelCase words (default: `False`)
+/// - `decode_html_entities`: Whether to decode HTML entities first (default: `False`)
+/// - `ignore`: Graphemes kept verbatim in the slug (default: `[]`)
 pub type Config {
   Config(
     separator: String,
@@ -29,6 +34,10 @@ pub type Config {
     preserve_trailing_dash: Bool,
     stop_words: List(String),
     trim: Bool,
+    locale: Locale,
+    decamelize: Bool,
+    decode_html_entities: Bool,
+    ignore: List(String),
   )
 }
 
@@ -66,7 +75,27 @@ pub fn default() -> Config {
     preserve_trailing_dash: False,
     stop_words: [],
     trim: True,
+    locale: locale.Default,
+    decamelize: False,
+    decode_html_entities: False,
+    ignore: [],
   )
+}
+
+/// Creates a configuration tuned for SEO-friendly URLs.
+///
+/// Same as `default()` but slugs are truncated to 60 characters at word
+/// boundaries, following search engine guidance on URL length.
+///
+/// ## Examples
+///
+/// ```gleam
+/// let config = seo_preset()
+/// ```
+pub fn seo_preset() -> Config {
+  default()
+  |> with_max_length(60)
+  |> with_word_boundary(True)
 }
 
 /// Sets the separator character(s) used between words.
@@ -215,6 +244,112 @@ pub fn with_custom_replacements(
 /// ```
 pub fn with_stop_words(config: Config, stop_words: List(String)) -> Config {
   Config(..config, stop_words: stop_words)
+}
+
+/// Sets whether a leading underscore on the input is kept on the slug.
+///
+/// Useful when slugifying identifiers where a leading underscore is
+/// meaningful (private fields, hidden files).
+///
+/// ## Examples
+///
+/// ```gleam
+/// default()
+/// |> with_preserve_leading_underscore(True)
+/// // "_private notes" -> "_private-notes"
+/// ```
+pub fn with_preserve_leading_underscore(
+  config: Config,
+  preserve_leading_underscore: Bool,
+) -> Config {
+  Config(..config, preserve_leading_underscore: preserve_leading_underscore)
+}
+
+/// Sets whether a trailing dash on the input is kept on the slug as a
+/// trailing separator.
+///
+/// Useful for slug fields that update live while the user is still
+/// typing, where "draft-" should not collapse to "draft".
+///
+/// ## Examples
+///
+/// ```gleam
+/// default()
+/// |> with_preserve_trailing_dash(True)
+/// // "draft-" -> "draft-"
+/// ```
+pub fn with_preserve_trailing_dash(
+  config: Config,
+  preserve_trailing_dash: Bool,
+) -> Config {
+  Config(..config, preserve_trailing_dash: preserve_trailing_dash)
+}
+
+/// Sets the locale used for language-specific transliteration rules.
+///
+/// ## Examples
+///
+/// ```gleam
+/// import glugify/locale
+///
+/// default()
+/// |> with_locale(locale.German)
+/// // "Über München" -> "ueber-muenchen" (instead of "uber-munchen")
+/// ```
+pub fn with_locale(config: Config, locale: Locale) -> Config {
+  Config(..config, locale: locale)
+}
+
+/// Sets whether camelCase and PascalCase words are split before
+/// slugification.
+///
+/// ## Examples
+///
+/// ```gleam
+/// default()
+/// |> with_decamelize(True)
+/// // "myAwesomeXMLParser" -> "my-awesome-xml-parser"
+/// ```
+pub fn with_decamelize(config: Config, decamelize: Bool) -> Config {
+  Config(..config, decamelize: decamelize)
+}
+
+/// Sets whether HTML entities (`&amp;`, `&#38;`, `&#x26;`) are decoded
+/// before slugification.
+///
+/// Useful when slugifying titles from CMS content or scraped HTML.
+///
+/// ## Examples
+///
+/// ```gleam
+/// default()
+/// |> with_decode_html_entities(True)
+/// // "Tom &amp; Jerry" -> "tom-and-jerry"
+/// ```
+pub fn with_decode_html_entities(
+  config: Config,
+  decode_html_entities: Bool,
+) -> Config {
+  Config(..config, decode_html_entities: decode_html_entities)
+}
+
+/// Sets graphemes that are kept verbatim in the slug: they are exempt
+/// from transliteration, are not converted to separators, and survive
+/// invalid-character removal.
+///
+/// ## Examples
+///
+/// ```gleam
+/// default()
+/// |> with_ignore(["#"])
+/// // "C# rocks" -> "c#-rocks"
+///
+/// default()
+/// |> with_ignore(["嗨"])
+/// // "嗨 hello" -> "嗨-hello"
+/// ```
+pub fn with_ignore(config: Config, ignore: List(String)) -> Config {
+  Config(..config, ignore: ignore)
 }
 
 /// Sets whether to trim leading and trailing whitespace from the input.

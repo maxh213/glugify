@@ -17,6 +17,28 @@ This TODO list provides a comprehensive roadmap for implementing the glugify slu
 ## v2.0.1
 - [x] Move the benchmarking code again to be outside of src, next to src and test. So it isn't in the main package.
 
+## v3.0.0
+- [x] Expand transliteration coverage (Latin extended, Cyrillic, Greek, smart punctuation, currency/symbols)
+- [x] Strip unmappable characters during transliteration instead of erroring (emoji/CJK no longer empty the slug)
+- [x] Handle decomposed (NFD) Unicode input
+- [x] Preserve multi-codepoint graphemes in allow_unicode mode
+- [x] Make stop word matching case-insensitive (as documented)
+- [x] Add builders for preserve_leading_underscore and preserve_trailing_dash
+- [x] Fix incorrect Unicode example output in README
+- [x] Uniqueness counter API: glugify/slugger with collision-safe -1/-2 suffixing
+- [x] Locale-aware transliteration via typed Locale (German, Danish, Norwegian, Swedish, Turkish)
+- [x] decamelize option (fooBar -> foo-bar)
+- [x] HTML entity decoding (&amp;, &#38;, &#x26;) via with_decode_html_entities
+- [x] seo_preset() config (max_length: 60, word_boundary: True)
+- [x] Strip ASCII apostrophes like smart apostrophes (don't -> dont)
+- [x] Elixir slugify-style `ignore` option (exempt specific graphemes from transliteration and removal)
+- [x] Arabic/Persian and Hebrew transliteration tables (basic consonantal romanization)
+
+## Roadmap candidates (from market research, June 2026)
+- [ ] CJK transliteration tables (Chinese -> pinyin), possibly code-generated like the deunicode/unidecode tables
+- [ ] github-slugger-compatible anchor mode for markdown/SSG tooling (needs spec-exact compatibility against github-slugger's test suite)
+- [ ] Consider making Config opaque (with field accessors) so future options stop being major version bumps
+
 ## Development Guidelines
 
 Each task should be completed following these principles:
